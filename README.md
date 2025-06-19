@@ -1,4 +1,7 @@
 # Generic Gaem
+<p align="center">
+    <img src="docs/GenericGaemGenAIBanner.png" alt="drawing" height="300" />
+</P>
 
 ## Brief Details
 
