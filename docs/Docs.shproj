@@ -13,4 +13,7 @@
   <ItemGroup>
     <Compile Include="*" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="README.md" />
+  </ItemGroup>
 </Project>

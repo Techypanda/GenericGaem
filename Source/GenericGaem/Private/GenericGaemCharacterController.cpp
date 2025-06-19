@@ -8,6 +8,13 @@
 #include "GenericGaemInputMapping.h"
 #define GUARD_PLAYER_NULL if (!Player) return;
 
+AGenericGaemCharacterController::AGenericGaemCharacterController()
+{
+	bIsHoldingRightClickInThirdPerson = false;
+	RcMouseX = 0;
+	RcMouseY = 0;
+}
+
 void AGenericGaemCharacterController::OnPossess(APawn* PossessedPawn)
 {
 	Super::OnPossess(PossessedPawn);
@@ -17,6 +24,7 @@ void AGenericGaemCharacterController::OnPossess(APawn* PossessedPawn)
 void AGenericGaemCharacterController::BeginPlay()
 {
 	Super::BeginPlay();
+	bIsHoldingRightClickInThirdPerson = false;
 }
 
 void AGenericGaemCharacterController::SetupInputComponent()
@@ -48,6 +56,7 @@ void AGenericGaemCharacterController::SetupInputComponent()
 	Input->BindAction(LoadedMapping->JumpAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacterController::Jump);
 	Input->BindAction(LoadedMapping->Mouse2DAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacterController::Look2D);
 	Input->BindAction(LoadedMapping->ZoomInOutAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacterController::Zoom);
+	Input->BindAction(LoadedMapping->ThirdPersonMouse2D, ETriggerEvent::Triggered, this, &AGenericGaemCharacterController::ThirdPersonRightClick);
 }
 
 void AGenericGaemCharacterController::Zoom(const FInputActionInstance& Instance)
@@ -60,10 +69,12 @@ void AGenericGaemCharacterController::Zoom(const FInputActionInstance& Instance)
 	if (!Player->bIsFirstPerson && SpringArm->TargetArmLength <= 0)
 	{
 		Player->SetFirstPerson();
+		bShowMouseCursor = false;
 	}
 	else if (Player->bIsFirstPerson && SpringArm->TargetArmLength > 0)
 	{
 		Player->SetThirdPerson();
+		bShowMouseCursor = true;
 	}
 }
 
@@ -96,14 +107,29 @@ void AGenericGaemCharacterController::Jump(const FInputActionInstance& Instance)
 	Player->bPressedJump = Value;
 }
 
+void AGenericGaemCharacterController::ThirdPersonRightClick(const FInputActionInstance& Instance)
+{
+	GUARD_PLAYER_NULL
+	const bool Value = Instance.GetValue().Get<bool>();
+	bIsHoldingRightClickInThirdPerson = !Player->bIsFirstPerson && Value; // TODO: optimize this, its only called twice but its still a inefficient call pre sure, if theres a way to change mappings for first person/third person we can avoid a whole two calls.
+	GetMousePosition(RcMouseX, RcMouseY);
+}
+
 void AGenericGaemCharacterController::Look2D(const FInputActionInstance& Instance)
 {
 	GUARD_PLAYER_NULL
-	if (!Player->bIsFirstPerson)
+	// Move camera with right click in third person
+	if (!Player->bIsFirstPerson && !bIsHoldingRightClickInThirdPerson)
 	{
 		return;
 	}
 	const FVector2D Value = Instance.GetValue().Get<FVector2D>();
 	Player->AddControllerYawInput(Value.X);
 	Player->AddControllerPitchInput(Value.Y * -1);
+	if (!Player->bIsFirstPerson && bIsHoldingRightClickInThirdPerson)
+	{
+		// need to instead do delta things...w
+		// the mouse does not move when rotating
+		// SetMouseLocation(static_cast<int32>(RcMouseX), static_cast<int32>(RcMouseY));
+	}
 }

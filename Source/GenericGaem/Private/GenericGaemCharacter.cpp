@@ -4,12 +4,12 @@
 #include "GenericGaemCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 AGenericGaemCharacter::AGenericGaemCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	MaximumZoomValue = 300.0f;
 	MinimumZoomValue = 0.0f;
 	ZoomMagnitudeValue = 10.0f;
@@ -23,6 +23,11 @@ AGenericGaemCharacter::AGenericGaemCharacter()
 void AGenericGaemCharacter::SetFirstPerson()
 {
 	CameraSpringArmComponent->bUsePawnControlRotation = true; // In FPS view the camera rotates with the character
+	bUseControllerRotationYaw = true;
+	if (UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		MovementComponent->bOrientRotationToMovement = false;
+	}
 	CameraSpringArmComponent->TargetArmLength = 0.0f; // Default to FPS view
 	GetMesh()->bOwnerNoSee = true; // Hide mesh in fps
 	GetMesh()->MarkRenderStateDirty();
@@ -31,7 +36,12 @@ void AGenericGaemCharacter::SetFirstPerson()
 
 void AGenericGaemCharacter::SetThirdPerson()
 {
-	CameraSpringArmComponent->bUsePawnControlRotation = false; // In third person, player should use right click to turn camera
+	CameraSpringArmComponent->bUsePawnControlRotation = true; // In third person, player should use right click to turn camera
+	bUseControllerRotationYaw = false;
+	if (UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		MovementComponent->bOrientRotationToMovement = true;
+	}
 	GetMesh()->bOwnerNoSee = false; // Show mesh in third person
 	GetMesh()->MarkRenderStateDirty();
 	bIsFirstPerson = false;
@@ -41,6 +51,7 @@ void AGenericGaemCharacter::SetThirdPerson()
 void AGenericGaemCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	SetFirstPerson();
 }
 
 // Called every frame

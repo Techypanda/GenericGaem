@@ -24,11 +24,13 @@ public:
 	class UInputAction* JumpAction;
 	class UInputAction* Mouse2DAction;
 	class UInputAction* ZoomInOutAction;
+	class UInputAction* ThirdPersonMouse2D;
 	void Initialize();
 private:
 	void CreateMoveForwardAction();
 	void CreateMoveRightAction();
 	void CreateJumpAction();
+	void CreateThirdPersonMouse2DAction();
 	void CreateMouse2DAction();
 	void CreateZoomInOutAction();
 };

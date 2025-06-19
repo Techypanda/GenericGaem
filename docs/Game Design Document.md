@@ -12,31 +12,35 @@ For now using this as a guide
 
 ### Concept Statement
 
-The game in a tweet: one or two sentences at most that say what the game is and why it’s fun.
+Comedical homage to Generic Roleplay Gaem, Players will start off at the lowest rank in society and strive to become either the rich, powerful or watch the world burn.
 
 ### Genre(s)
 
-Single genre is clearer but often less interesting. Genre combinations can be risky. Beware of ‘tired’ genres.
+Comedy, RolePlaying, Open World
 
 ### Target Audience
 
-Motivations and relevant interests; potentially age, gender, etc.; and the desired ESRB rating for the game.
+Mainly teenagers and young adults
 
 ### Unique Selling Points
 
-Critically important. What makes your game stand out? How is it different from all other games?
+Open Source, No Pay To Win, Free and Comedy games appear to be less popular outside of roblox
 
 ## Product Design
 
 ### Player Experience and Game POV
 
-Who is the player? What is the setting? What is the fantasy the game grants the player? What emotions do
-you want the player to feel? What keeps the player engaged for the duration of their play?
+The player is a named NPC that they create, they will get to choose what role they want to start each 'round' as and until death can change their role at any time, roles cost money and have different perks.
+The player is engaged while they play as if they do well they will permanently keep the money they earn, if they die fast they will lose money and may have to start at bottom again
 
 ### Visual and Audio Style
 
 What is the “look and feel” of the game? How does this support the desired player’s experience? What
 concept art or reference art can you show to give the feel of the game?
+
+Desired look and feel is going to be potentially Retro or Low Poly, definetly very goofy vibe
+
+... TODO im not actually sure this document is super valuable in a game like this
 
 ### Game World Fiction
 

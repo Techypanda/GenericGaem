@@ -17,6 +17,7 @@ void UGenericGaemInputMapping::Initialize()
 	CreateJumpAction();
 	CreateMouse2DAction();
 	CreateZoomInOutAction();
+	CreateThirdPersonMouse2DAction();
 }
 
 void UGenericGaemInputMapping::CreateMoveForwardAction()
@@ -72,6 +73,21 @@ void UGenericGaemInputMapping::CreateMouse2DAction()
 	Mouse2DAction->ActionDescription = FText::FromString("Handle Mouse XY Movement");
 	auto Mouse2DMapping = FEnhancedActionKeyMapping(Mouse2DAction, EKeys::Mouse2D);
 	Mappings.Add(Mouse2DMapping);
+}
+
+void UGenericGaemInputMapping::CreateThirdPersonMouse2DAction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Creating CreateThirdPersonMouse2DAction in GenericGaemInputMapping"));
+	ThirdPersonMouse2D = NewObject<UInputAction>(this, TEXT("A_ThirdPersonMouse2D"));
+	ThirdPersonMouse2D->ValueType = EInputActionValueType::Boolean;
+	ThirdPersonMouse2D->ActionDescription = FText::FromString("Toggle Whether User is holding right click");
+	auto RightClickPressed = FEnhancedActionKeyMapping(ThirdPersonMouse2D, EKeys::RightMouseButton);
+	RightClickPressed.Triggers.Add(TriggerPressed);
+	auto RightClickReleased = FEnhancedActionKeyMapping(ThirdPersonMouse2D, EKeys::RightMouseButton);
+	RightClickReleased.Triggers.Add(TriggerReleased);
+	RightClickReleased.Modifiers.Add(NegateModifier);
+	Mappings.Add(RightClickPressed);
+	Mappings.Add(RightClickReleased);
 }
 
 void UGenericGaemInputMapping::CreateZoomInOutAction()
