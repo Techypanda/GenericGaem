@@ -10,6 +10,9 @@
 AGenericGaemCharacter::AGenericGaemCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+	GetCharacterMovement()->SetIsReplicated(true);
+	GetMesh()->SetIsReplicated(true);
 	MaximumZoomValue = 300.0f;
 	MinimumZoomValue = 0.0f;
 	ZoomMagnitudeValue = 10.0f;

@@ -6,6 +6,7 @@
 #include "InputMappingContext.h"
 #include "InputAction.h"
 #include "GenericGaemInputMapping.h"
+#include <string_view>
 #define GUARD_PLAYER_NULL if (!Player) return;
 
 AGenericGaemCharacterController::AGenericGaemCharacterController()
