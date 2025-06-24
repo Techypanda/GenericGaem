@@ -10,6 +10,16 @@ class GENERICGAEM_API AGenericGaemCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+private:
+	bool bIsHoldingRightClickInThirdPerson;
+	float RcMouseX, RcMouseY;
+	void Zoom(const struct FInputActionInstance& Instance);
+	void Look2D(const struct FInputActionInstance& Instance);
+	void MoveForward(const struct FInputActionInstance& Instance);
+	void MoveRight(const struct FInputActionInstance& Instance);
+	void ThirdPersonRightClick(const struct FInputActionInstance& Instance);
+	void Jump(const struct FInputActionInstance& Instance);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera);
 	class UCameraComponent* CameraComponent;
@@ -21,6 +31,9 @@ protected:
 	float MaximumZoomValue;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera);
 	float ZoomMagnitudeValue;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
+	TSoftObjectPtr<class UGenericGaemInputMapping> InputMapping;
+
 	virtual void BeginPlay() override;
 
 public:

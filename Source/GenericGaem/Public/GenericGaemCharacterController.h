@@ -21,15 +21,4 @@ protected:
 	void BeginPlay() override;
 	void SetupInputComponent() override;
 	AGenericGaemCharacterController();
-private:
-	float RcMouseX;
-	float RcMouseY;
-	bool bIsHoldingRightClickInThirdPerson;
-	class AGenericGaemCharacter* Player;
-	void MoveForward(const struct FInputActionInstance& Instance);
-	void MoveRight(const struct FInputActionInstance& Instance);
-	void Look2D(const struct FInputActionInstance& Instance);
-	void ThirdPersonRightClick(const struct FInputActionInstance& Instance);
-	void Jump(const struct FInputActionInstance& Instance);
-	void Zoom(const struct FInputActionInstance& Instance);
 };
