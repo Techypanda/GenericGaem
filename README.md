@@ -3,6 +3,11 @@
     <img src="docs/GenericGaemGenAIBanner.png" alt="drawing" height="300" />
 </P>
 
+## How To Host Game
+
+- Start Gaem
+- Join via Ipv4 on client (dont use 0.0.0.0)
+
 ## Brief Details
 
 This game is a open source game which is supposed to be a comedical homeage to [Generic Roleplay Gaem](https://www.roblox.com/games/4598019433/generic-roleplay-gaem) by AznDibs.
