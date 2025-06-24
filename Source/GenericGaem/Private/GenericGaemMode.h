@@ -14,5 +14,6 @@ class AGenericGaemMode : public AGameModeBase
 {
 	GENERATED_BODY()
 public:
+	AGenericGaemMode();
 	void PostLogin(APlayerController* NewPlayer) override;
 };

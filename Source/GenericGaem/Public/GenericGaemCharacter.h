@@ -3,6 +3,8 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "IRole.h"
+#include <memory>
 #include "GenericGaemCharacter.generated.h"
 
 UCLASS()
@@ -11,6 +13,7 @@ class GENERICGAEM_API AGenericGaemCharacter : public ACharacter
 	GENERATED_BODY()
 
 private:
+	std::unique_ptr<IRole> AssignedRole;
 	bool bIsHoldingRightClickInThirdPerson;
 	float RcMouseX, RcMouseY;
 	void Zoom(const struct FInputActionInstance& Instance);
@@ -55,4 +58,6 @@ public:
 	const float MaximumZoom() const;
 
 	const float ZoomMagnitude() const;
+
+	const IRole& GetRole() const;
 };

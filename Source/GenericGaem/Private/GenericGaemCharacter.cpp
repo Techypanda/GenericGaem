@@ -8,9 +8,11 @@
 #include "GenericGaemInputMapping.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "IRole.h"
+#include "BaseRole.h"
 
 // Sets default values
-AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f)
+AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), AssignedRole(std::make_unique<BaseRole>())
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -115,12 +117,16 @@ const float AGenericGaemCharacter::ZoomMagnitude() const
 	return ZoomMagnitudeValue;
 }
 
+const IRole& AGenericGaemCharacter::GetRole() const
+{
+	return *AssignedRole.get();
+}
+
 void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)
 {
 	const float Value = Instance.GetValue().Get<float>();
 	USpringArmComponent* SpringArm = GetCameraSpringArmComponent();
 	SpringArm->TargetArmLength = FMath::Clamp(SpringArm->TargetArmLength - Value * ZoomMagnitude(), MinimumZoom(), MaximumZoom());
-	UE_LOG(LogTemp, Warning, TEXT("Zooming: %hs, Length: %f"), bIsFirstPerson ? "true" : "false", SpringArm->TargetArmLength);
 	if (!bIsFirstPerson && SpringArm->TargetArmLength <= 0)
 	{
 		SetFirstPerson();
