@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Engine/TimerHandle.h"
 #include "GenericGaemMode.generated.h"
 
 /**
@@ -16,4 +17,13 @@ class AGenericGaemMode : public AGameModeBase
 public:
 	AGenericGaemMode();
 	void PostLogin(APlayerController* NewPlayer) override;
+	void InitGameState() override;
+	void DetermineNextLeader();
+	void OnDebug();
+	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+protected:
+	FTimerHandle _DetermineNextLeaderTimerHandler;
+	FTimerHandle _DebugHandler;
+private:
+	void SetPlayerAsLeader(class AGenericGaemPlayerState* NewLeader);
 };

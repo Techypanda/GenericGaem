@@ -2,23 +2,83 @@
 
 
 #include "GenericGaemPlayerState.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 
-const FGuid AGenericGaemPlayerState::GetPlayerId() const
+AGenericGaemPlayerState::AGenericGaemPlayerState()
 {
-	return PlayerId;
+	bReplicates = true;
 }
 
-void AGenericGaemPlayerState::SetPlayerId(const FGuid& InPlayerId)
+void AGenericGaemPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	PlayerId = InPlayerId;
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGenericGaemPlayerState, _AssignedRole);
+	DOREPLIFETIME(AGenericGaemPlayerState, _LastLeaderDateTimeString);
 }
 
-void AGenericGaemPlayerState::UpdateLastTimeLeader(const std::chrono::system_clock::time_point& InTime)
+void AGenericGaemPlayerState::SetGameRole(ERole NewRole)
 {
-	LastTimeLeader = InTime;
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Setting game role to %d for player_id: %d"), static_cast<int32>(NewRole), GetPlayerId());
+		_AssignedRole = NewRole;
+		OnGameRoleUpdate();
+	}
 }
 
-const std::chrono::system_clock::time_point& AGenericGaemPlayerState::GetLastTimeLeader() const
+ERole AGenericGaemPlayerState::GetGameRole() const
 {
-	return LastTimeLeader;
+	return _AssignedRole;
 }
+
+void AGenericGaemPlayerState::SetLastTimeLeader(FDateTime NewDateTime)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		_LastLeaderDateTimeString = NewDateTime.ToString();
+		OnLastTimeLeaderUpdate();
+	}
+}
+
+FDateTime AGenericGaemPlayerState::GetLastTimeLeaderAsDateTime() const
+{
+	FDateTime OutDateTime{};
+	FDateTime::Parse(_LastLeaderDateTimeString, OutDateTime);
+	return OutDateTime;
+}
+
+void AGenericGaemPlayerState::OnRep_GameRole()
+{
+	OnGameRoleUpdate();
+}
+
+void AGenericGaemPlayerState::OnGameRoleUpdate()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server: Game role updated to %d for player_id: %d"), static_cast<int32>(_AssignedRole), GetPlayerId());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client?: Game role replicated to %d for player_id: %d"), static_cast<int32>(_AssignedRole), GetPlayerId());
+	}
+}
+
+void AGenericGaemPlayerState::OnRep_LastTimeLeader()
+{
+	OnLastTimeLeaderUpdate();
+}
+
+void AGenericGaemPlayerState::OnLastTimeLeaderUpdate()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server: Last time leader updated to %s for player_id: %d"), *_LastLeaderDateTimeString, GetPlayerId());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client?: Last time leader replicated to %s for player_id: %d"), *_LastLeaderDateTimeString, GetPlayerId());
+	}
+}
+

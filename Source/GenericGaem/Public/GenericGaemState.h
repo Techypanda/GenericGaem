@@ -13,7 +13,16 @@ UCLASS()
 class GENERICGAEM_API AGenericGaemState : public AGameStateBase
 {
 	GENERATED_BODY()
-	
- public:
+public:
+	void SetLeader(int32 InLeaderId);
+
+protected:
+	UPROPERTY(ReplicatedUsing = OnRep_Leader)
+	int32 LeaderId;
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void PreInitializeComponents() override;
+
+	UFUNCTION()
+	void OnRep_Leader();
+	void OnLeaderUpdate();
 };

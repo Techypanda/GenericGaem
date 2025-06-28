@@ -8,11 +8,9 @@
 #include "GenericGaemInputMapping.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
-#include "IRole.h"
-#include "BaseRole.h"
 
 // Sets default values
-AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), AssignedRole(std::make_unique<BaseRole>())
+AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f)
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -115,11 +113,6 @@ const float AGenericGaemCharacter::MaximumZoom() const
 const float AGenericGaemCharacter::ZoomMagnitude() const
 {
 	return ZoomMagnitudeValue;
-}
-
-const IRole& AGenericGaemCharacter::GetRole() const
-{
-	return *AssignedRole.get();
 }
 
 void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)
