@@ -8,3 +8,8 @@ const std::string_view PeasantRole::RoleName = "Peasant";
 PeasantRole::PeasantRole() : BaseRole(PeasantRole::RoleName)
 {
 }
+
+const FColor PeasantRole::GetRoleColor() const
+{
+	return FColor{ 115, 74, 22, 255 };
+}

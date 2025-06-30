@@ -2,10 +2,11 @@
 
 
 #include "GenericGaemPlayerState.h"
+#include "GenericGaemHUD.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
 
-AGenericGaemPlayerState::AGenericGaemPlayerState()
+AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}
 {
 	bReplicates = true;
 }
@@ -32,6 +33,16 @@ ERole AGenericGaemPlayerState::GetGameRole() const
 	return _AssignedRole;
 }
 
+FString AGenericGaemPlayerState::GetGameRoleAsString() const
+{
+	return ERoleHelper::ERoleToRole(GetGameRole())->GetRoleName().data();
+}
+
+FColor AGenericGaemPlayerState::GetGameRoleColor() const
+{
+	return ERoleHelper::ERoleToRole(GetGameRole())->GetRoleColor();
+}
+
 void AGenericGaemPlayerState::SetLastTimeLeader(FDateTime NewDateTime)
 {
 	if (GetLocalRole() == ROLE_Authority)
@@ -46,6 +57,20 @@ FDateTime AGenericGaemPlayerState::GetLastTimeLeaderAsDateTime() const
 	FDateTime OutDateTime{};
 	FDateTime::Parse(_LastLeaderDateTimeString, OutDateTime);
 	return OutDateTime;
+}
+
+void AGenericGaemPlayerState::SetMoney(FString NewMoney)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		_Money = NewMoney;
+		OnMoneyUpdate();
+	}
+}
+
+FString AGenericGaemPlayerState::GetMoney() const
+{
+	return _Money;
 }
 
 void AGenericGaemPlayerState::OnRep_GameRole()
@@ -63,6 +88,7 @@ void AGenericGaemPlayerState::OnGameRoleUpdate()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Client?: Game role replicated to %d for player_id: %d"), static_cast<int32>(_AssignedRole), GetPlayerId());
 	}
+	_RoleChangedEvent.Broadcast();
 }
 
 void AGenericGaemPlayerState::OnRep_LastTimeLeader()
@@ -82,3 +108,20 @@ void AGenericGaemPlayerState::OnLastTimeLeaderUpdate()
 	}
 }
 
+void AGenericGaemPlayerState::OnRep_Money()
+{
+	OnMoneyUpdate();
+}
+
+void AGenericGaemPlayerState::OnMoneyUpdate()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server: Money updated to %s for player_id: %d"), *_Money, GetPlayerId());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client?: Money replicated to %s for player_id: %d"), *_Money, GetPlayerId());
+	}
+	_MoneyChangedEvent.Broadcast();
+}

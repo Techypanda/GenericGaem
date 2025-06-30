@@ -16,5 +16,6 @@ public:
 	static const std::string_view BaseRoleName;
 	BaseRole(const std::string_view InRoleName = BaseRoleName);
 	virtual ~BaseRole() override;
+	virtual const FColor GetRoleColor() const override;
 	virtual const std::string_view GetRoleName() const override;
 };

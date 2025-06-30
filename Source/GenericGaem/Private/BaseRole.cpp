@@ -13,6 +13,11 @@ BaseRole::~BaseRole()
 {
 }
 
+const FColor BaseRole::GetRoleColor() const
+{
+	return FColor::Black;
+}
+
 const std::string_view BaseRole::GetRoleName() const
 {
 	return RoleName;

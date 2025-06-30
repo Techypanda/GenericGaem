@@ -13,4 +13,5 @@ class GENERICGAEM_API LeaderRole : public BaseRole
 public:
 	static const std::string_view RoleName;
 	LeaderRole();
+	const FColor GetRoleColor() const override;
 };

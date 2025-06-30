@@ -8,3 +8,8 @@ const std::string_view LeaderRole::RoleName = "Leader";
 LeaderRole::LeaderRole() : BaseRole(LeaderRole::RoleName)
 {
 }
+
+const FColor LeaderRole::GetRoleColor() const
+{
+	return FColor{ 202, 11, 0, 255 };
+}

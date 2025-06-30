@@ -20,5 +20,5 @@ void AGenericGaemMainMenuGameMode::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("Failed to create MainMenuWidget instance"));
 		return;
 	}
-	 InstancedMainMenuWidget->AddToViewport();
+	InstancedMainMenuWidget->AddToViewport();
 }

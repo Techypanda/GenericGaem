@@ -13,4 +13,5 @@ class GENERICGAEM_API PeasantRole : public BaseRole
 public:
 	static const std::string_view RoleName;
 	PeasantRole();
+	const FColor GetRoleColor() const override;
 };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Math/Color.h"
 #include <string_view>
 
 /**
@@ -14,4 +15,5 @@ public:
 	IRole();
 	virtual ~IRole();
 	virtual const std::string_view GetRoleName() const = 0;
+	virtual const FColor GetRoleColor() const = 0;
 };
