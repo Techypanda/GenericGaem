@@ -10,7 +10,7 @@
 #include "EnhancedInputComponent.h"
 
 // Sets default values
-AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f)
+AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true)
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -115,20 +115,37 @@ const float AGenericGaemCharacter::ZoomMagnitude() const
 	return ZoomMagnitudeValue;
 }
 
+void AGenericGaemCharacter::EnableMovement(bool bEnabled)
+{
+	GetController()->SetIgnoreLookInput(!bEnabled);
+	GetController()->SetIgnoreMoveInput(!bEnabled);
+	bAllowZoom = bEnabled;
+}
+
+void AGenericGaemCharacter::ShowCursor(bool bShowCursor)
+{
+	Cast<APlayerController>(GetController())->bShowMouseCursor = bShowCursor;
+}
+
 void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)
 {
+	if (!bAllowZoom)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Zoom is disabled, ignoring input"));
+		return;
+	}
 	const float Value = Instance.GetValue().Get<float>();
 	USpringArmComponent* SpringArm = GetCameraSpringArmComponent();
 	SpringArm->TargetArmLength = FMath::Clamp(SpringArm->TargetArmLength - Value * ZoomMagnitude(), MinimumZoom(), MaximumZoom());
 	if (!bIsFirstPerson && SpringArm->TargetArmLength <= 0)
 	{
 		SetFirstPerson();
-		Cast<APlayerController>(GetController())->bShowMouseCursor = false;
+		ShowCursor(false);
 	}
 	else if (bIsFirstPerson && SpringArm->TargetArmLength > 0)
 	{
 		SetThirdPerson();
-		Cast<APlayerController>(GetController())->bShowMouseCursor = true;
+		ShowCursor(true);
 	}
 }
 

@@ -73,6 +73,33 @@ FString AGenericGaemPlayerState::GetMoney() const
 	return _Money;
 }
 
+void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(ERole RoleToPurchase)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PurchaseRole called on client, but this should only be called on the server!"));
+		return;
+	}
+	const auto LocalRole = ERoleHelper::ERoleToRole(RoleToPurchase);
+	if (!LocalRole)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid role requested for purchase: %d"), static_cast<int32>(RoleToPurchase));
+		return;
+	}
+	const auto Price = FCString::Atoi(*FString(LocalRole->GetRolePrice().data()));
+	const auto PlayerMoney = FCString::Atoi(*GetMoney());
+	if (PlayerMoney < Price)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not enough money to purchase role %hs. Required: %d, Available: %d"),
+			LocalRole->GetRoleName().data(), Price, PlayerMoney);
+		return;
+	}
+	SetGameRole(RoleToPurchase);
+	SetMoney(FString::FromInt(PlayerMoney - Price));
+	UE_LOG(LogTemp, Warning, TEXT("Role %hs purchased successfully for player_id: %d. Remaining money: %s"),
+		LocalRole->GetRoleName().data(), GetPlayerId(), *GetMoney());
+}
+
 void AGenericGaemPlayerState::OnRep_GameRole()
 {
 	OnGameRoleUpdate();

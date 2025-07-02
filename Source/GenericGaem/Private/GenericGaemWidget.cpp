@@ -3,6 +3,7 @@
 
 #include "GenericGaemWidget.h"
 #include "GenericGaemPlayerState.h"
+#include "GenericGaemStructures.h"
 #include "GameFramework/PlayerController.h"
 
 void UGenericGaemWidget::InitializeWidget(UWorld* World)
@@ -19,11 +20,36 @@ void UGenericGaemWidget::InitializeWidget(UWorld* World)
 	UE_LOG(LogTemp, Warning, TEXT("UGenericGaemWidget::InitializeWidget: PlayerState is not null, yippee"));
 	PlayerState->OnMoneyChanged().AddUObject(this, &UGenericGaemWidget::OnMoneyChanged);
 	PlayerState->OnRoleChanged().AddUObject(this, &UGenericGaemWidget::OnRoleChanged);
+	PlayerState->OnRolePurchased().AddUObject(this, &UGenericGaemWidget::OnRolePurchased);
 }
 
 void UGenericGaemWidget::PostLoad()
 {
 	Super::PostLoad();
+}
+
+TArray<FRoleListItem> UGenericGaemWidget::GetRoleListItems() const
+{
+	TArray<FRoleListItem> RoleListItems{};
+	const auto Roles = ERoleHelper::GetAllRoles();
+	for (int I = 0; I < Roles.size(); I++)
+	{
+		const auto& RoleVal = Roles[I];
+		RoleListItems.Push(
+			FRoleListItem{
+				FString(RoleVal->GetRoleName().data()),
+				FString(RoleVal->GetRolePrice().data()),
+				FString(RoleVal->GetRoleDescription().data()),
+				I
+			}
+		);
+	}
+	return RoleListItems;
+}
+
+void UGenericGaemWidget::OnRolePurchased_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Role purchased in GenericGaemWidget"));
 }
 
 void UGenericGaemWidget::OnMoneyChanged_Implementation()

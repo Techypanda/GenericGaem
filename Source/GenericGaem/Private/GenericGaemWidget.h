@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GenericGaemListItemWidget.h"
 #include "GenericGaemWidget.generated.h"
 
 /**
@@ -21,5 +22,9 @@ protected:
 	void OnMoneyChanged();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
 	void OnRoleChanged();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
+	void OnRolePurchased();
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem")
+	TArray<struct FRoleListItem> GetRoleListItems() const;
 	FTimerHandle _HackyTimerHandle;
 };

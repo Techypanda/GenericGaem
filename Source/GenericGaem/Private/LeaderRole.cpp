@@ -3,9 +3,7 @@
 
 #include "LeaderRole.h"
 
-const std::string_view LeaderRole::RoleName = "Leader";
-
-LeaderRole::LeaderRole() : BaseRole(LeaderRole::RoleName)
+LeaderRole::LeaderRole() : BaseRole(LeaderRole::RoleName, LeaderRole::RoleDescription, LeaderRole::RolePrice)
 {
 }
 

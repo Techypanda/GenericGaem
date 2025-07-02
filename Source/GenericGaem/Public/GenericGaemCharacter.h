@@ -12,7 +12,7 @@ class GENERICGAEM_API AGenericGaemCharacter : public ACharacter
 	GENERATED_BODY()
 
 private:
-	bool bIsHoldingRightClickInThirdPerson;
+	bool bIsHoldingRightClickInThirdPerson, bAllowZoom;
 	float RcMouseX, RcMouseY;
 	void Zoom(const struct FInputActionInstance& Instance);
 	void Look2D(const struct FInputActionInstance& Instance);
@@ -56,4 +56,10 @@ public:
 	const float MaximumZoom() const;
 
 	const float ZoomMagnitude() const;
+
+	UFUNCTION(BlueprintCallable)
+	void EnableMovement(bool bEnabled);
+
+	UFUNCTION(BlueprintCallable)
+	void ShowCursor(bool bShowCursor);
 };

@@ -3,9 +3,7 @@
 
 #include "BaseRole.h"
 
-const std::string_view BaseRole::BaseRoleName = "None";
-
-BaseRole::BaseRole(const std::string_view InRoleName) : RoleName(InRoleName)
+BaseRole::BaseRole(const std::string_view InRoleName, const std::string_view InRoleDescription, const std::string_view InRolePrice) : _RoleName(InRoleName), _RoleDescription(InRoleDescription), _RolePrice(InRolePrice)
 {
 }
 
@@ -20,5 +18,15 @@ const FColor BaseRole::GetRoleColor() const
 
 const std::string_view BaseRole::GetRoleName() const
 {
-	return RoleName;
+	return _RoleName;
+}
+
+const std::string_view BaseRole::GetRoleDescription() const
+{
+	return _RoleDescription;
+}
+
+const std::string_view BaseRole::GetRolePrice() const
+{
+	return _RolePrice;
 }

@@ -11,7 +11,9 @@
 class GENERICGAEM_API LeaderRole : public BaseRole
 {
 public:
-	static const std::string_view RoleName;
+	static constexpr std::string_view RoleName = "Leader";
+	static constexpr std::string_view RoleDescription = "Rule over people, probably corrupt, probably a nice guy, kill people?";
+	static constexpr std::string_view RolePrice = "99999999999999999"; // You should not be buying this role
 	LeaderRole();
 	const FColor GetRoleColor() const override;
 };

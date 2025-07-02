@@ -39,6 +39,10 @@ public:
 	FMoneyChangedEvent& OnMoneyChanged() { return _MoneyChangedEvent; }
 	DECLARE_EVENT(FLayerViewModel, FRoleChangedEvent)
 	FRoleChangedEvent& OnRoleChanged() { return _RoleChangedEvent; }
+	DECLARE_EVENT(FLayerViewModel, FRolePurchased)
+	FRolePurchased& OnRolePurchased() { return _RolePurchasedEvent; }
+	UFUNCTION(Server, Reliable)
+	void ServerPurchaseRole(ERole RoleToPurchase);
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_GameRole)
 	ERole _AssignedRole;
@@ -60,4 +64,5 @@ protected:
 	void OnMoneyUpdate();
 	FMoneyChangedEvent _MoneyChangedEvent;
 	FRoleChangedEvent _RoleChangedEvent;
+	FRolePurchased _RolePurchasedEvent;
 };

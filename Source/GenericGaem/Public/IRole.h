@@ -12,8 +12,10 @@
 class GENERICGAEM_API IRole
 {
 public:
-	IRole();
-	virtual ~IRole();
+	IRole() = default;
+	virtual ~IRole() = default;
 	virtual const std::string_view GetRoleName() const = 0;
 	virtual const FColor GetRoleColor() const = 0;
+	virtual const std::string_view GetRoleDescription() const = 0;
+	virtual const std::string_view GetRolePrice() const = 0;
 };

@@ -9,6 +9,7 @@
 #include "GameFramework/GameState.h"
 
 static constexpr float _DetermineNextLeaderTimerInterval = 2.0f;
+static constexpr std::string_view _StartingMoney = "251";
 
 AGenericGaemMode::AGenericGaemMode() : _DetermineNextLeaderTimerHandler{}, _DebugHandler{}
 {
@@ -49,7 +50,7 @@ void AGenericGaemMode::PostLogin(APlayerController* NewPlayer)
 	}
 	PlayerState->SetGameRole(ERole::None);
 	PlayerState->SetLastTimeLeader(FDateTime::UtcNow());
-	PlayerState->SetMoney(TEXT("0"));
+	PlayerState->SetMoney(FString(_StartingMoney.data()));
 	UE_LOG(LogTemp, Warning, TEXT("Assigned PlayerId: %d to player: %s, %s time joined"), PlayerState->GetPlayerId(), *NewPlayer->GetName(), *PlayerState->GetLastTimeLeaderAsDateTime().ToString());
 	// FOR DEBUG
 	// after 30 seconds, set the players role to peasant
