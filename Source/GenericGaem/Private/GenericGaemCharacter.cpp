@@ -10,7 +10,7 @@
 #include "EnhancedInputComponent.h"
 
 // Sets default values
-AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true)
+AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true), bDisableMovement(false), bDisableLook(false)
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -117,8 +117,8 @@ const float AGenericGaemCharacter::ZoomMagnitude() const
 
 void AGenericGaemCharacter::EnableMovement(bool bEnabled)
 {
-	GetController()->SetIgnoreLookInput(!bEnabled);
-	GetController()->SetIgnoreMoveInput(!bEnabled);
+	bDisableLook = !bEnabled;
+	bDisableMovement = !bEnabled;
 	bAllowZoom = bEnabled;
 }
 
@@ -151,6 +151,10 @@ void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)
 
 void AGenericGaemCharacter::MoveForward(const FInputActionInstance& Instance)
 {
+	if (bDisableMovement)
+	{
+		return;
+	}
 	const float Value = Instance.GetValue().Get<float>();
 	FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
 	// Zero out Z and normalize
@@ -161,7 +165,11 @@ void AGenericGaemCharacter::MoveForward(const FInputActionInstance& Instance)
 
 void AGenericGaemCharacter::MoveRight(const FInputActionInstance& Instance)
 {
-		const float Value = Instance.GetValue().Get<float>();
+	if (bDisableMovement)
+	{
+		return;
+	}
+	const float Value = Instance.GetValue().Get<float>();
 	FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
 	// Zero out Z and normalize
 	Direction.Z = 0.0f;
@@ -171,6 +179,10 @@ void AGenericGaemCharacter::MoveRight(const FInputActionInstance& Instance)
 
 void AGenericGaemCharacter::Jump(const FInputActionInstance& Instance)
 {
+	if (bDisableMovement)
+	{
+		return;
+	}
 	const bool Value = Instance.GetValue().Get<bool>();
 	bPressedJump = Value;
 }
@@ -186,7 +198,7 @@ void AGenericGaemCharacter::ThirdPersonRightClick(const FInputActionInstance& In
 void AGenericGaemCharacter::Look2D(const FInputActionInstance& Instance)
 {
 	// Move camera with right click in third person
-	if (!bIsFirstPerson && !bIsHoldingRightClickInThirdPerson)
+	if ((!bIsFirstPerson && !bIsHoldingRightClickInThirdPerson) || bDisableLook)
 	{
 		return;
 	}
