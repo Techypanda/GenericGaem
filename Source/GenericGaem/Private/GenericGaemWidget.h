@@ -24,6 +24,8 @@ protected:
 	void OnRoleChanged();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
 	void OnRolePurchased();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
+	void OnHealthChanged();
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem")
 	TArray<struct FRoleListItem> GetRoleListItems() const;
 	FTimerHandle _HackyTimerHandle;

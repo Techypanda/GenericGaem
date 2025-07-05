@@ -51,10 +51,11 @@ void AGenericGaemMode::PostLogin(APlayerController* NewPlayer)
 	PlayerState->SetGameRole(ERole::None);
 	PlayerState->SetLastTimeLeader(FDateTime::UtcNow());
 	PlayerState->SetMoney(FString(_StartingMoney.data()));
+	PlayerState->SetHealth(AGenericGaemPlayerState::MaxHealth);
 	UE_LOG(LogTemp, Warning, TEXT("Assigned PlayerId: %d to player: %s, %s time joined"), PlayerState->GetPlayerId(), *NewPlayer->GetName(), *PlayerState->GetLastTimeLeaderAsDateTime().ToString());
 	// FOR DEBUG
 	// after 30 seconds, set the players role to peasant
-	// GetWorld()->GetTimerManager().SetTimer(_DebugHandler, this, &AGenericGaemMode::OnDebug, 10.0f, false);
+	// GetWorld()->GetTimerManager().SetTimer(_DebugHandler, this, &AGenericGaemMode::OnDebug, 5.0f, false);
 }
 
 // TODO: Maybe multi thread?
@@ -103,4 +104,5 @@ void AGenericGaemMode::OnDebug()
 	const auto NewLeader = Cast<AGenericGaemPlayerState>(GameState->PlayerArray[0].Get());
 	NewLeader->SetMoney(TEXT("1000"));
 	NewLeader->SetGameRole(ERole::Peasant); // Set them to peasant (replicated)
+	NewLeader->SetHealth(19.82942f);
 }

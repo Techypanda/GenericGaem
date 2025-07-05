@@ -21,6 +21,12 @@ void UGenericGaemWidget::InitializeWidget(UWorld* World)
 	PlayerState->OnMoneyChanged().AddUObject(this, &UGenericGaemWidget::OnMoneyChanged);
 	PlayerState->OnRoleChanged().AddUObject(this, &UGenericGaemWidget::OnRoleChanged);
 	PlayerState->OnRolePurchased().AddUObject(this, &UGenericGaemWidget::OnRolePurchased);
+	PlayerState->OnHealthChanged().AddUObject(this, &UGenericGaemWidget::OnHealthChanged);
+}
+
+void UGenericGaemWidget::OnHealthChanged_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Health changed in GenericGaemWidget"));
 }
 
 void UGenericGaemWidget::PostLoad()

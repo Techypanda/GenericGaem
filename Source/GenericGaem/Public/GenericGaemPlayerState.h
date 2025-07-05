@@ -17,6 +17,7 @@ class AGenericGaemPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
+	static constexpr float MaxHealth = 100.0f;
 	AGenericGaemPlayerState();
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/GameRole")
@@ -41,9 +42,20 @@ public:
 	FRoleChangedEvent& OnRoleChanged() { return _RoleChangedEvent; }
 	DECLARE_EVENT(FLayerViewModel, FRolePurchased)
 	FRolePurchased& OnRolePurchased() { return _RolePurchasedEvent; }
+	DECLARE_EVENT(FLayerViewModel, FHealthChangedEvent)
+	FHealthChangedEvent& OnHealthChanged() { return _HealthChangedEvent; }
 	UFUNCTION(Server, Reliable)
 	void ServerPurchaseRole(ERole RoleToPurchase);
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
+	void SetHealth(float NewHealth);
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
+	float GetHealth() const;
 protected:
+	UPROPERTY(ReplicatedUsing = OnRep_Health)
+	float _Health;
+	UFUNCTION()
+	void OnRep_Health();
+	void OnHealthUpdate();
 	UPROPERTY(ReplicatedUsing = OnRep_GameRole)
 	ERole _AssignedRole;
 	UFUNCTION()
@@ -65,4 +77,5 @@ protected:
 	FMoneyChangedEvent _MoneyChangedEvent;
 	FRoleChangedEvent _RoleChangedEvent;
 	FRolePurchased _RolePurchasedEvent;
+	FHealthChangedEvent _HealthChangedEvent;
 };

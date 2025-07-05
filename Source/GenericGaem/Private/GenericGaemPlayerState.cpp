@@ -6,7 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
 
-AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}
+AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{MaxHealth}
 {
 	bReplicates = true;
 }
@@ -98,6 +98,39 @@ void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(ERole RoleToPurc
 	SetMoney(FString::FromInt(PlayerMoney - Price));
 	UE_LOG(LogTemp, Warning, TEXT("Role %hs purchased successfully for player_id: %d. Remaining money: %s"),
 		LocalRole->GetRoleName().data(), GetPlayerId(), *GetMoney());
+}
+
+void AGenericGaemPlayerState::SetHealth(float NewHealth)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		NewHealth = std::clamp(NewHealth, 0.0f, MaxHealth);
+		// TODO: introduce invulnerability
+		_Health = NewHealth;
+		OnHealthUpdate();
+	}
+}
+
+float AGenericGaemPlayerState::GetHealth() const
+{
+	return _Health;
+}
+
+void AGenericGaemPlayerState::OnRep_Health()
+{
+	OnHealthUpdate();
+}
+
+void AGenericGaemPlayerState::OnHealthUpdate()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server: Health updated to %.2f for player_id: %d"), _Health, GetPlayerId());
+	}
+	else
+	{
+	}
+	_HealthChangedEvent.Broadcast();
 }
 
 void AGenericGaemPlayerState::OnRep_GameRole()
