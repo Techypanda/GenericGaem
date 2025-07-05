@@ -2,12 +2,20 @@
 
 
 #include "GenericGaemCharacter.h"
+#include "GenericGaemPlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GenericGaemInputMapping.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Components/TextRenderComponent.h"
+#include <string>
+
+static constexpr float RoleDisplayZOffset = 100.0f;
+static constexpr float HealthDisplayZOffset = 115.0f;
+static constexpr float RoleDisplayFontsize = 16.0f;
+static constexpr float HealthDisplayFontsize = 16.0f;
 
 // Sets default values
 AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true), bDisableMovement(false), bDisableLook(false)
@@ -20,7 +28,22 @@ AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHo
 	CameraSpringArmComponent->SetupAttachment(RootComponent);
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(CameraSpringArmComponent);
+	RoleDisplayComponent = CreateTextRenderComponent(TEXT("RoleDisplay"), RoleDisplayZOffset, RoleDisplayFontsize);
+	HealthDisplayComponent = CreateTextRenderComponent(TEXT("HealthDisplay"), HealthDisplayZOffset, HealthDisplayFontsize);
 	SetFirstPerson();
+}
+
+UTextRenderComponent* AGenericGaemCharacter::CreateTextRenderComponent(const wchar_t* const Name, const float& ZOffset, const float& FontSize)
+{
+	const auto& NewTextDisplay = CreateDefaultSubobject<UTextRenderComponent>(Name);
+	NewTextDisplay->SetupAttachment(RootComponent);
+	NewTextDisplay->SetRelativeLocation(FVector(0.0f, 0.0f, ZOffset));
+	NewTextDisplay->SetHorizontalAlignment(EHTA_Center);
+	NewTextDisplay->SetVerticalAlignment(EVRTA_TextCenter);
+	NewTextDisplay->SetText(FText::FromString(""));
+	NewTextDisplay->SetIsReplicated(true);
+	NewTextDisplay->SetWorldSize(FontSize);
+	return NewTextDisplay;
 }
 
 void AGenericGaemCharacter::SetFirstPerson()
@@ -128,6 +151,18 @@ void AGenericGaemCharacter::ShowCursor(bool bShowCursor)
 	Cast<APlayerController>(GetController())->bShowMouseCursor = bShowCursor;
 }
 
+void AGenericGaemCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	const auto& _Playerstate = GetPlayerState<AGenericGaemPlayerState>();
+	if (_Playerstate)
+	{
+		_Playerstate->OnRoleChanged().AddUObject(this, &AGenericGaemCharacter::OnRoleChange);
+		_Playerstate->OnHealthChanged().AddUObject(this, &AGenericGaemCharacter::OnHealthChange);
+		OnHealthChange(); // Get Initial health
+	}
+}
+
 void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)
 {
 	if (!bAllowZoom)
@@ -190,6 +225,34 @@ void AGenericGaemCharacter::Jump(const FInputActionInstance& Instance)
 	}
 	const bool Value = Instance.GetValue().Get<bool>();
 	bPressedJump = Value;
+}
+
+void AGenericGaemCharacter::OnRoleChange()
+{
+	const auto& _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
+	const auto& _Role = ERoleHelper::ERoleToRole(_PlayerState->GetGameRole());
+	RoleDisplayComponent->SetText(FText::FromString(_Role->GetRoleName().data()));
+	RoleDisplayComponent->SetTextRenderColor(_Role->GetRoleColor());
+}
+
+void AGenericGaemCharacter::OnHealthChange()
+{
+	const auto& _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
+	const auto& _Health = static_cast<int>(std::ceil(_PlayerState->GetHealth()));
+	const auto& _FormattedHealth = std::format("HP: {}", _Health);
+	HealthDisplayComponent->SetText(FText::FromString(_FormattedHealth.c_str()));
+	if (_Health >= 75)
+	{
+		HealthDisplayComponent->SetTextRenderColor(FColor::Green);
+	}
+	else if (_Health >= 35)
+	{
+		HealthDisplayComponent->SetTextRenderColor(FColor::Orange);
+	}
+	else
+	{
+		HealthDisplayComponent->SetTextRenderColor(FColor::Red);
+	}
 }
 
 void AGenericGaemCharacter::ThirdPersonRightClick(const FInputActionInstance& Instance)

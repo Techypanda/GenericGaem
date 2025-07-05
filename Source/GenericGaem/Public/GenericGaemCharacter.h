@@ -26,9 +26,14 @@ public:
 	void EnableMovement(bool bEnabled);
 	UFUNCTION(BlueprintCallable)
 	void ShowCursor(bool bShowCursor);
+	void OnRep_PlayerState() override;
 	DECLARE_EVENT(FLayerViewModel, FEscapeMenuEvent)
 	FEscapeMenuEvent& OnEscapeMenu() { return _EscapeMenuEvent; }
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
+	class UTextRenderComponent* RoleDisplayComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
+	class UTextRenderComponent* HealthDisplayComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera);
 	class UCameraComponent* CameraComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera);
@@ -46,6 +51,7 @@ private:
 	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bDisableMovement, bDisableLook;
 	float RcMouseX, RcMouseY;
 	FEscapeMenuEvent _EscapeMenuEvent;
+	class UTextRenderComponent* CreateTextRenderComponent(const wchar_t* const Name, const float& ZOffset, const float& FontSize);
 	void Zoom(const struct FInputActionInstance& Instance);
 	void EscapeMenu(const struct FInputActionInstance& Instance);
 	void Look2D(const struct FInputActionInstance& Instance);
@@ -53,4 +59,6 @@ private:
 	void MoveRight(const struct FInputActionInstance& Instance);
 	void ThirdPersonRightClick(const struct FInputActionInstance& Instance);
 	void Jump(const struct FInputActionInstance& Instance);
+	void OnRoleChange();
+	void OnHealthChange();
 };
