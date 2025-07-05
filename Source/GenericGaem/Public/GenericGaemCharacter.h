@@ -29,6 +29,9 @@ public:
 	void OnRep_PlayerState() override;
 	DECLARE_EVENT(FLayerViewModel, FEscapeMenuEvent)
 	FEscapeMenuEvent& OnEscapeMenu() { return _EscapeMenuEvent; }
+	void Use();
+	UFUNCTION(Server, Unreliable)
+	void ServerUse(FVector ActorForwardVector);
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
 	class UTextRenderComponent* RoleDisplayComponent;
@@ -62,5 +65,6 @@ private:
 	void OnRoleChange();
 	void OnHealthChange();
 	void BindTextRenders();
+	void UseAction(const FInputActionInstance& Instance);
 	void PossessedBy(AController* NewController) override;
 };

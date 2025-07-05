@@ -81,6 +81,54 @@ void AGenericGaemCharacter::BeginPlay()
 	SetFirstPerson();
 }
 
+// TODO: this should be abstracted into items really, this is just a melee weapon
+void AGenericGaemCharacter::Use()
+{
+	ECollisionChannel TraceChannelProperty = ECC_Pawn;
+	FHitResult Hit;
+	const auto HitDistance = 100.0f;
+	FVector StartOfTrace = GetActorLocation();
+	FVector EndOfTrace = StartOfTrace + GetActorForwardVector() * HitDistance;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	GetWorld()->LineTraceSingleByChannel(Hit, StartOfTrace, EndOfTrace, TraceChannelProperty, QueryParams);
+	const auto& HitActor = Hit.GetActor();
+	const auto& HitSucceededOnPlayer = Hit.bBlockingHit && IsValid(HitActor);
+	UE_LOG(LogTemp, Warning, TEXT("Hit Succeeded: %s"), HitSucceededOnPlayer ? TEXT("True") : TEXT("False"));
+	if (!HitSucceededOnPlayer)
+	{
+		return;
+	}
+	// Invoke Server to do the work
+	ServerUse(GetActorForwardVector());
+}
+
+// TODO: this should be abstracted into items really, this is just a melee weapon
+void AGenericGaemCharacter::ServerUse_Implementation(FVector ActorForwardVector)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Server Use called on %s"), *GetName());
+	ECollisionChannel TraceChannelProperty = ECC_Pawn;
+	FHitResult Hit;
+	const auto HitDistance = 100.0f;
+	FVector StartOfTrace = GetActorLocation();
+	FVector EndOfTrace = StartOfTrace + ActorForwardVector * HitDistance;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	GetWorld()->LineTraceSingleByChannel(Hit, StartOfTrace, EndOfTrace, TraceChannelProperty, QueryParams);
+	const auto& HitActor = Hit.GetActor();
+	const auto& HitSucceededOnPlayer = Hit.bBlockingHit && IsValid(HitActor);
+	DrawDebugLine(GetWorld(), StartOfTrace, EndOfTrace, HitSucceededOnPlayer ? FColor::Blue : FColor::Red, false, 5.0f, 0, 10.0f);
+	if (!HitSucceededOnPlayer)
+	{
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Server Use called, hit actor: %s"), *HitActor->GetName());
+	// TEMP, use interfaces
+	const auto GameCharacter = Cast<AGenericGaemCharacter>(HitActor);
+	const auto GamePlayerState = GameCharacter->GetPlayerState<AGenericGaemPlayerState>();
+	GamePlayerState->SetHealth(GamePlayerState->GetHealth() - 10.0f);
+}
+
 // Called every frame
 void AGenericGaemCharacter::Tick(float DeltaTime)
 {
@@ -117,6 +165,7 @@ void AGenericGaemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	Input->BindAction(LoadedMapping->JumpAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::Jump);
 	Input->BindAction(LoadedMapping->ThirdPersonMouse2D, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::ThirdPersonRightClick);
 	Input->BindAction(LoadedMapping->EscapeMenuAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::EscapeMenu);
+	Input->BindAction(LoadedMapping->UseAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::UseAction);
 }
 
 USpringArmComponent* AGenericGaemCharacter::GetCameraSpringArmComponent()
@@ -175,6 +224,11 @@ void AGenericGaemCharacter::BindTextRenders()
 		OnRoleChange(); // Get Initial Role
 		OnHealthChange(); // Get Initial health
 	}
+}
+
+void AGenericGaemCharacter::UseAction(const FInputActionInstance& Instance)
+{
+	Use();
 }
 
 void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)

@@ -19,6 +19,7 @@ void UGenericGaemInputMapping::Initialize()
 	CreateZoomInOutAction();
 	CreateThirdPersonMouse2DAction();
 	CreateEscapeMenuAction();
+	CreateUseAction();
 }
 
 void UGenericGaemInputMapping::CreateMoveForwardAction()
@@ -110,4 +111,15 @@ void UGenericGaemInputMapping::CreateEscapeMenuAction()
 	auto EscapeMapping = FEnhancedActionKeyMapping(EscapeMenuAction, EKeys::Escape);
 	EscapeMapping.Triggers.Add(TriggerPressed);
 	Mappings.Add(EscapeMapping);
+}
+
+void UGenericGaemInputMapping::CreateUseAction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Creating CreateUseAction in GenericGaemInputMapping"));
+	UseAction = NewObject<UInputAction>(this, TEXT("A_Use"));
+	UseAction->ValueType = EInputActionValueType::Boolean;
+	UseAction->ActionDescription = FText::FromString("Handle Using Items");
+	auto UseMapping = FEnhancedActionKeyMapping(UseAction, EKeys::LeftMouseButton);
+	UseMapping.Triggers.Add(TriggerPressed);
+	Mappings.Add(UseMapping);
 }
