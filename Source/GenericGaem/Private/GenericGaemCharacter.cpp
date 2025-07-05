@@ -18,7 +18,7 @@ static constexpr float RoleDisplayFontsize = 16.0f;
 static constexpr float HealthDisplayFontsize = 16.0f;
 
 // Sets default values
-AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true), bDisableMovement(false), bDisableLook(false)
+AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true), bDisableMovement(false), bDisableLook(false), bBindedTextRender{false}
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -151,14 +151,28 @@ void AGenericGaemCharacter::ShowCursor(bool bShowCursor)
 	Cast<APlayerController>(GetController())->bShowMouseCursor = bShowCursor;
 }
 
+void AGenericGaemCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	BindTextRenders();
+}
+
 void AGenericGaemCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
-	const auto& _Playerstate = GetPlayerState<AGenericGaemPlayerState>();
-	if (_Playerstate)
+	BindTextRenders();
+}
+
+void AGenericGaemCharacter::BindTextRenders()
+{
+	const auto _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
+	if (_PlayerState && !bBindedTextRender)
 	{
-		_Playerstate->OnRoleChanged().AddUObject(this, &AGenericGaemCharacter::OnRoleChange);
-		_Playerstate->OnHealthChanged().AddUObject(this, &AGenericGaemCharacter::OnHealthChange);
+		bBindedTextRender = true; // I think I think a mutex here as i'm not sure if PossessedBy and OnRep_PlayerState run on different threads, based off docs they dont so don't need
+		UE_LOG(LogTemp, Warning, TEXT("Player State Possessed: %s"), *_PlayerState->GetPlayerName());
+		_PlayerState->OnRoleChanged().AddUObject(this, &AGenericGaemCharacter::OnRoleChange);
+		_PlayerState->OnHealthChanged().AddUObject(this, &AGenericGaemCharacter::OnHealthChange);
+		OnRoleChange(); // Get Initial Role
 		OnHealthChange(); // Get Initial health
 	}
 }

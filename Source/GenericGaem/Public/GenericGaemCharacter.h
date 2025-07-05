@@ -48,7 +48,7 @@ protected:
 	TSoftObjectPtr<class UGenericGaemInputMapping> InputMapping;
 	virtual void BeginPlay() override;
 private:
-	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bDisableMovement, bDisableLook;
+	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bDisableMovement, bDisableLook, bBindedTextRender;
 	float RcMouseX, RcMouseY;
 	FEscapeMenuEvent _EscapeMenuEvent;
 	class UTextRenderComponent* CreateTextRenderComponent(const wchar_t* const Name, const float& ZOffset, const float& FontSize);
@@ -61,4 +61,6 @@ private:
 	void Jump(const struct FInputActionInstance& Instance);
 	void OnRoleChange();
 	void OnHealthChange();
+	void BindTextRenders();
+	void PossessedBy(AController* NewController) override;
 };
