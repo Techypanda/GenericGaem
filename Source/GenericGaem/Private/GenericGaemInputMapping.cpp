@@ -18,6 +18,7 @@ void UGenericGaemInputMapping::Initialize()
 	CreateMouse2DAction();
 	CreateZoomInOutAction();
 	CreateThirdPersonMouse2DAction();
+	CreateEscapeMenuAction();
 }
 
 void UGenericGaemInputMapping::CreateMoveForwardAction()
@@ -98,4 +99,15 @@ void UGenericGaemInputMapping::CreateZoomInOutAction()
 	ZoomInOutAction->ActionDescription = FText::FromString("Handle Zooming In and Out");
 	auto ZoomInMapping = FEnhancedActionKeyMapping(ZoomInOutAction, EKeys::MouseWheelAxis);
 	Mappings.Add(ZoomInMapping);
+}
+
+void UGenericGaemInputMapping::CreateEscapeMenuAction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Creating CreateEscapeMenuAction in GenericGaemInputMapping"));
+	EscapeMenuAction = NewObject<UInputAction>(this, TEXT("A_EscapeMenu"));
+	EscapeMenuAction->ValueType = EInputActionValueType::Boolean;
+	EscapeMenuAction->ActionDescription = FText::FromString("Handle Escape Menu");
+	auto EscapeMapping = FEnhancedActionKeyMapping(EscapeMenuAction, EKeys::Escape);
+	EscapeMapping.Triggers.Add(TriggerPressed);
+	Mappings.Add(EscapeMapping);
 }

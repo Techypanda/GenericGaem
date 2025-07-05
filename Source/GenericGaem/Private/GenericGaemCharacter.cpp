@@ -93,6 +93,7 @@ void AGenericGaemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	Input->BindAction(LoadedMapping->MoveRightAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::MoveRight);
 	Input->BindAction(LoadedMapping->JumpAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::Jump);
 	Input->BindAction(LoadedMapping->ThirdPersonMouse2D, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::ThirdPersonRightClick);
+	Input->BindAction(LoadedMapping->EscapeMenuAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::EscapeMenu);
 }
 
 USpringArmComponent* AGenericGaemCharacter::GetCameraSpringArmComponent()
@@ -131,7 +132,6 @@ void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)
 {
 	if (!bAllowZoom)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Zoom is disabled, ignoring input"));
 		return;
 	}
 	const float Value = Instance.GetValue().Get<float>();
@@ -147,6 +147,11 @@ void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)
 		SetThirdPerson();
 		ShowCursor(true);
 	}
+}
+
+void AGenericGaemCharacter::EscapeMenu(const FInputActionInstance& Instance)
+{
+	_EscapeMenuEvent.Broadcast();
 }
 
 void AGenericGaemCharacter::MoveForward(const FInputActionInstance& Instance)

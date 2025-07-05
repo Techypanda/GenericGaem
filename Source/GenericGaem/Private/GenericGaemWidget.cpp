@@ -3,6 +3,7 @@
 
 #include "GenericGaemWidget.h"
 #include "GenericGaemPlayerState.h"
+#include "GenericGaemCharacter.h"
 #include "GenericGaemStructures.h"
 #include "GameFramework/PlayerController.h"
 
@@ -10,7 +11,8 @@ void UGenericGaemWidget::InitializeWidget(UWorld* World)
 {
 	UE_LOG(LogTemp, Warning, TEXT("UGenericGaemWidget::InitializeWidget called"));
 	const auto PlayerState = GetOwningPlayerState<AGenericGaemPlayerState>();
-	if (!PlayerState)
+	const auto Player = GetOwningPlayerPawn<AGenericGaemCharacter>();
+	if (!PlayerState || !Player)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGenericGaemWidget::InitializeWidget: PlayerState is null, going to sleep and restart in a timer"));
 		FTimerDelegate InitWidgetDelegate = FTimerDelegate::CreateUObject(this, &UGenericGaemWidget::InitializeWidget, World);
@@ -22,6 +24,12 @@ void UGenericGaemWidget::InitializeWidget(UWorld* World)
 	PlayerState->OnRoleChanged().AddUObject(this, &UGenericGaemWidget::OnRoleChanged);
 	PlayerState->OnRolePurchased().AddUObject(this, &UGenericGaemWidget::OnRolePurchased);
 	PlayerState->OnHealthChanged().AddUObject(this, &UGenericGaemWidget::OnHealthChanged);
+	Player->OnEscapeMenu().AddUObject(this, &UGenericGaemWidget::OnEscapeMenu);
+}
+
+void UGenericGaemWidget::OnEscapeMenu_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Escape menu opened in GenericGaemWidget"));
 }
 
 void UGenericGaemWidget::OnHealthChanged_Implementation()

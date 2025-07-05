@@ -11,16 +11,23 @@ class GENERICGAEM_API AGenericGaemCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-private:
-	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bDisableMovement, bDisableLook;
-	float RcMouseX, RcMouseY;
-	void Zoom(const struct FInputActionInstance& Instance);
-	void Look2D(const struct FInputActionInstance& Instance);
-	void MoveForward(const struct FInputActionInstance& Instance);
-	void MoveRight(const struct FInputActionInstance& Instance);
-	void ThirdPersonRightClick(const struct FInputActionInstance& Instance);
-	void Jump(const struct FInputActionInstance& Instance);
-
+public:
+	bool bIsFirstPerson;
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	AGenericGaemCharacter();
+	void SetFirstPerson();
+	void SetThirdPerson();
+	class USpringArmComponent* GetCameraSpringArmComponent();
+	const float MinimumZoom() const;
+	const float MaximumZoom() const;
+	const float ZoomMagnitude() const;
+	UFUNCTION(BlueprintCallable)
+	void EnableMovement(bool bEnabled);
+	UFUNCTION(BlueprintCallable)
+	void ShowCursor(bool bShowCursor);
+	DECLARE_EVENT(FLayerViewModel, FEscapeMenuEvent)
+	FEscapeMenuEvent& OnEscapeMenu() { return _EscapeMenuEvent; }
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera);
 	class UCameraComponent* CameraComponent;
@@ -34,32 +41,16 @@ protected:
 	float ZoomMagnitudeValue;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TSoftObjectPtr<class UGenericGaemInputMapping> InputMapping;
-
 	virtual void BeginPlay() override;
-
-public:
-	bool bIsFirstPerson;
-	virtual void Tick(float DeltaTime) override;
-
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	AGenericGaemCharacter();
-
-	void SetFirstPerson();
-
-	void SetThirdPerson();
-
-	USpringArmComponent* GetCameraSpringArmComponent();
-
-	const float MinimumZoom() const;
-
-	const float MaximumZoom() const;
-
-	const float ZoomMagnitude() const;
-
-	UFUNCTION(BlueprintCallable)
-	void EnableMovement(bool bEnabled);
-
-	UFUNCTION(BlueprintCallable)
-	void ShowCursor(bool bShowCursor);
+private:
+	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bDisableMovement, bDisableLook;
+	float RcMouseX, RcMouseY;
+	FEscapeMenuEvent _EscapeMenuEvent;
+	void Zoom(const struct FInputActionInstance& Instance);
+	void EscapeMenu(const struct FInputActionInstance& Instance);
+	void Look2D(const struct FInputActionInstance& Instance);
+	void MoveForward(const struct FInputActionInstance& Instance);
+	void MoveRight(const struct FInputActionInstance& Instance);
+	void ThirdPersonRightClick(const struct FInputActionInstance& Instance);
+	void Jump(const struct FInputActionInstance& Instance);
 };

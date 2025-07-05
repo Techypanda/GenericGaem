@@ -4,7 +4,7 @@
 #include "Engine/Level.h"
 #include "GenericGaemMainMenuPlayerControl.h"
 
-const FName UGenericGaemMainMenuWidget::MainLevelName = TEXT("/Game/Levels/TestingLevel");
+const FName UGenericGaemMainMenuWidget::MainLevelName = TEXT("/Game/Levels/L_PersistentLevel");
 
 void UGenericGaemMainMenuWidget::OnQuitButtonClicked()
 {
