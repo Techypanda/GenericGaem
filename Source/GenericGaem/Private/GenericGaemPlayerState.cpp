@@ -4,6 +4,7 @@
 #include "GenericGaemPlayerState.h"
 #include "GenericGaemHUD.h"
 #include "Net/UnrealNetwork.h"
+#include "GenericGaemCharacter.h"
 #include "Engine/Engine.h"
 
 AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{MaxHealth}
@@ -105,6 +106,10 @@ void AGenericGaemPlayerState::SetHealth(float NewHealth)
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		NewHealth = std::clamp(NewHealth, 0.0f, MaxHealth);
+		if (NewHealth <= 0.0f) {
+			const auto _Player = GetPawn<AGenericGaemCharacter>();
+			_Player->ServerDeath();
+		}
 		// TODO: introduce invulnerability
 		_Health = NewHealth;
 		OnHealthUpdate();

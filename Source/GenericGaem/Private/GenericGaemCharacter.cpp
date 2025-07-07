@@ -125,8 +125,31 @@ void AGenericGaemCharacter::ServerUse_Implementation(FVector ActorForwardVector)
 	UE_LOG(LogTemp, Warning, TEXT("Server Use called, hit actor: %s"), *HitActor->GetName());
 	// TEMP, use interfaces
 	const auto GameCharacter = Cast<AGenericGaemCharacter>(HitActor);
+	if (!GameCharacter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit actor is not a GenericGaemCharacter: %s"), *HitActor->GetName());
+		return;
+	}
 	const auto GamePlayerState = GameCharacter->GetPlayerState<AGenericGaemPlayerState>();
+	if (!GamePlayerState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit actor's player state is not a GenericGaemPlayerState: %s"), *HitActor->GetName());
+		return;
+	}
 	GamePlayerState->SetHealth(GamePlayerState->GetHealth() - 10.0f);
+}
+
+void AGenericGaemCharacter::ServerDeath_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Server Death called on %s"), *GetName());
+	// TODO: Prevent Movement, ETC
+	auto DeathLocation = GetActorLocation();
+	DeathLocation.Z -= 90.0f;
+	const auto Death = GetWorld()->SpawnActor<ADeathObject>(DeathObject, DeathLocation, GetActorRotation(), FActorSpawnParameters{});
+	// TODO: Propagate to player
+	Death->MulticastSetDeath(10.0f, GetPlayerState<AGenericGaemPlayerState>()->GetPlayerName());
+	Death->SetDeath(10.0f, GetPlayerState<AGenericGaemPlayerState>()->GetPlayerName());
+	Destroy(); // the character is dead and needs to respawn
 }
 
 // Called every frame

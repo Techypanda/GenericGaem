@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "IRole.h"
+#include "DeathObject.h"
 #include "GenericGaemCharacter.generated.h"
 
 UCLASS()
@@ -32,7 +33,11 @@ public:
 	void Use();
 	UFUNCTION(Server, Unreliable)
 	void ServerUse(FVector ActorForwardVector);
+	UFUNCTION(Server, Reliable)
+	void ServerDeath();
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death);
+	class TSubclassOf<ADeathObject> DeathObject;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
 	class UTextRenderComponent* RoleDisplayComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
