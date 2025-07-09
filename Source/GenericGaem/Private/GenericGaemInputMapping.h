@@ -27,6 +27,7 @@ public:
 	class UInputAction* ThirdPersonMouse2D;
 	class UInputAction* EscapeMenuAction;
 	class UInputAction* UseAction;
+	class UInputAction* SwimAction;
 	void Initialize();
 private:
 	void CreateMoveForwardAction();
@@ -37,4 +38,5 @@ private:
 	void CreateZoomInOutAction();
 	void CreateEscapeMenuAction();
 	void CreateUseAction();
+	void CreateSwimAction();
 };

@@ -20,6 +20,7 @@ void UGenericGaemInputMapping::Initialize()
 	CreateThirdPersonMouse2DAction();
 	CreateEscapeMenuAction();
 	CreateUseAction();
+	CreateSwimAction();
 }
 
 void UGenericGaemInputMapping::CreateMoveForwardAction()
@@ -122,4 +123,19 @@ void UGenericGaemInputMapping::CreateUseAction()
 	auto UseMapping = FEnhancedActionKeyMapping(UseAction, EKeys::LeftMouseButton);
 	UseMapping.Triggers.Add(TriggerPressed);
 	Mappings.Add(UseMapping);
+}
+
+void UGenericGaemInputMapping::CreateSwimAction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Creating CreateSwimAction in GenericGaemInputMapping"));
+	SwimAction = NewObject<UInputAction>(this, TEXT("A_Swim"));
+	SwimAction->ValueType = EInputActionValueType::Axis1D;
+	SwimAction->ActionDescription = FText::FromString("Handle Swimming");
+	auto SwimUpMapping = FEnhancedActionKeyMapping(SwimAction, EKeys::SpaceBar);
+	auto SwimDownMapping = FEnhancedActionKeyMapping(SwimAction, EKeys::LeftShift);
+	SwimUpMapping.Triggers.Add(TriggerDown);
+	SwimDownMapping.Triggers.Add(TriggerDown);
+	SwimDownMapping.Modifiers.Add(NegateModifier);
+	Mappings.Add(SwimUpMapping);
+	Mappings.Add(SwimDownMapping);
 }

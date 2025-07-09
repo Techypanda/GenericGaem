@@ -9,6 +9,7 @@
 #include "GenericGaemInputMapping.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Components/TextRenderComponent.h"
 #include <string>
 
@@ -189,6 +190,7 @@ void AGenericGaemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	Input->BindAction(LoadedMapping->ThirdPersonMouse2D, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::ThirdPersonRightClick);
 	Input->BindAction(LoadedMapping->EscapeMenuAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::EscapeMenu);
 	Input->BindAction(LoadedMapping->UseAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::UseAction);
+	Input->BindAction(LoadedMapping->SwimAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::Swim);
 }
 
 USpringArmComponent* AGenericGaemCharacter::GetCameraSpringArmComponent()
@@ -249,6 +251,21 @@ void AGenericGaemCharacter::BindTextRenders()
 	}
 }
 
+void AGenericGaemCharacter::Swim(const FInputActionInstance& Instance)
+{
+	if (bDisableMovement || !GetMovementComponent()->IsSwimming())
+	{
+		return;
+	}
+	const float Value = Instance.GetValue().Get<float>();
+	UE_LOG(LogTemp, Warning, TEXT("Swim Value: %f"), Value);
+	auto Direction = UKismetMathLibrary::GetUpVector(Controller->GetControlRotation());
+	Direction.Y = 0.0f;
+	Direction.X = 0.0f;
+	Direction = Direction.GetSafeNormal();
+	AddMovementInput(Direction, Value);
+}
+
 void AGenericGaemCharacter::UseAction(const FInputActionInstance& Instance)
 {
 	Use();
@@ -287,10 +304,19 @@ void AGenericGaemCharacter::MoveForward(const FInputActionInstance& Instance)
 		return;
 	}
 	const float Value = Instance.GetValue().Get<float>();
-	FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
-	// Zero out Z and normalize
-	Direction.Z = 0.0f;
-	Direction = Direction.GetSafeNormal();
+	const auto& IsSwimming = GetMovementComponent()->IsSwimming();
+	FVector Direction;
+	if (IsSwimming)
+	{
+		Direction = UKismetMathLibrary::GetForwardVector(Controller->GetControlRotation());
+	}
+	else
+	{
+		Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
+		// Zero out Z and normalize
+		Direction.Z = 0.0f;
+		Direction = Direction.GetSafeNormal();
+	}
 	AddMovementInput(Direction, Value);
 }
 

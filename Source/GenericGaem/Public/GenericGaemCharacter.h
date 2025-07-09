@@ -70,6 +70,7 @@ private:
 	void OnRoleChange();
 	void OnHealthChange();
 	void BindTextRenders();
+	void Swim(const FInputActionInstance& Instance);
 	void UseAction(const FInputActionInstance& Instance);
 	void PossessedBy(AController* NewController) override;
 };
