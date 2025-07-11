@@ -17,6 +17,7 @@ void AGenericGaemPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AGenericGaemPlayerState, _AssignedRole);
 	DOREPLIFETIME(AGenericGaemPlayerState, _LastLeaderDateTimeString);
+	DOREPLIFETIME(AGenericGaemPlayerState, bIsInvulnerable);
 }
 
 void AGenericGaemPlayerState::SetGameRole(ERole NewRole)
