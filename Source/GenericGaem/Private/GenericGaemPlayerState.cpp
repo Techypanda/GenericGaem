@@ -103,14 +103,13 @@ void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(ERole RoleToPurc
 
 void AGenericGaemPlayerState::SetHealth(float NewHealth)
 {
-	if (GetLocalRole() == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority && !bIsInvulnerable)
 	{
 		NewHealth = std::clamp(NewHealth, 0.0f, MaxHealth);
 		if (NewHealth <= 0.0f) {
 			const auto _Player = GetPawn<AGenericGaemCharacter>();
 			_Player->ServerDeath();
 		}
-		// TODO: introduce invulnerability
 		_Health = NewHealth;
 		OnHealthUpdate();
 	}
@@ -121,9 +120,36 @@ float AGenericGaemPlayerState::GetHealth() const
 	return _Health;
 }
 
+void AGenericGaemPlayerState::SetInvulnerability(bool bInInvulnerability)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		bIsInvulnerable = bInInvulnerability;
+		OnInvulnerabilityUpdate();
+	}
+}
+
+bool AGenericGaemPlayerState::GetInvulnerability() const
+{
+	return bIsInvulnerable;
+}
+
 void AGenericGaemPlayerState::OnRep_Health()
 {
 	OnHealthUpdate();
+}
+
+void AGenericGaemPlayerState::OnRep_Invulnerability()
+{
+	OnInvulnerabilityUpdate();
+}
+
+void AGenericGaemPlayerState::OnInvulnerabilityUpdate()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server: Vulnerability updated to %hs"), bIsInvulnerable ? "is invulnerable" : "is vulnerable");
+	}
 }
 
 void AGenericGaemPlayerState::OnHealthUpdate()

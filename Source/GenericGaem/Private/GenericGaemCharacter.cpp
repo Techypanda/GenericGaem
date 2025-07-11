@@ -82,6 +82,49 @@ void AGenericGaemCharacter::BeginPlay()
 	SetFirstPerson();
 }
 
+void AGenericGaemCharacter::OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState)
+{
+	Super::OnPlayerStateChanged(NewPlayerState, OldPlayerState);
+	const auto& _NewPlayerState = Cast<AGenericGaemPlayerState>(NewPlayerState);
+	if (NewPlayerState) {
+		SetVulnerabilityBasedOffRole(_NewPlayerState->GetGameRole());
+		SetVisibilityBasedOffRole(_NewPlayerState->GetGameRole());
+	}
+}
+
+void AGenericGaemCharacter::SetVisibilityBasedOffRole(ERole NewRole)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		const auto& SceneComponent = GetRootComponent();
+		if (NewRole == ERole::None)
+		{
+			// No Role Yet, Hide the character and set invulnerable for everyone
+			SceneComponent->SetVisibility(false, true);
+		}
+		else
+		{
+			SceneComponent->SetVisibility(true, true);
+		}
+	}
+}
+
+void AGenericGaemCharacter::SetVulnerabilityBasedOffRole(ERole NewRole)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		const auto& _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
+		if (NewRole == ERole::None)
+		{
+			_PlayerState->SetInvulnerability(true);
+		}
+		else
+		{
+			_PlayerState->SetInvulnerability(false);
+		}
+	}
+}
+
 // TODO: this should be abstracted into items really, this is just a melee weapon
 void AGenericGaemCharacter::Use()
 {
@@ -350,6 +393,8 @@ void AGenericGaemCharacter::OnRoleChange()
 	const auto& _Role = ERoleHelper::ERoleToRole(_PlayerState->GetGameRole());
 	RoleDisplayComponent->SetText(FText::FromString(_Role->GetRoleName().data()));
 	RoleDisplayComponent->SetTextRenderColor(_Role->GetRoleColor());
+	SetVulnerabilityBasedOffRole(_PlayerState->GetGameRole());
+	SetVisibilityBasedOffRole(_PlayerState->GetGameRole());
 }
 
 void AGenericGaemCharacter::OnHealthChange()

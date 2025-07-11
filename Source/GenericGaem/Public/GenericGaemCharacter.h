@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "IRole.h"
 #include "DeathObject.h"
+#include "ERole.h"
 #include "GenericGaemCharacter.generated.h"
 
 UCLASS()
@@ -55,6 +56,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TSoftObjectPtr<class UGenericGaemInputMapping> InputMapping;
 	virtual void BeginPlay() override;
+	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
 private:
 	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bDisableMovement, bDisableLook, bBindedTextRender;
 	float RcMouseX, RcMouseY;
@@ -73,4 +75,6 @@ private:
 	void Swim(const FInputActionInstance& Instance);
 	void UseAction(const FInputActionInstance& Instance);
 	void PossessedBy(AController* NewController) override;
+	void SetVisibilityBasedOffRole(ERole NewRole);
+	void SetVulnerabilityBasedOffRole(ERole NewRole);
 };

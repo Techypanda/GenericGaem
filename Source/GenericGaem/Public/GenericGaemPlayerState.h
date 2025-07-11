@@ -50,11 +50,20 @@ public:
 	void SetHealth(float NewHealth);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
 	float GetHealth() const;
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
+	void SetInvulnerability(bool bInInvulnerability);
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
+	bool GetInvulnerability() const;
 protected:
+	UPROPERTY(ReplicatedUsing = OnRep_Invulnerability)
+	bool bIsInvulnerable;
 	UPROPERTY(ReplicatedUsing = OnRep_Health)
 	float _Health;
 	UFUNCTION()
 	void OnRep_Health();
+	UFUNCTION()
+	void OnRep_Invulnerability();
+	void OnInvulnerabilityUpdate();
 	void OnHealthUpdate();
 	UPROPERTY(ReplicatedUsing = OnRep_GameRole)
 	ERole _AssignedRole;
