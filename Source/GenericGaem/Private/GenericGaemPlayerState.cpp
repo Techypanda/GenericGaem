@@ -3,11 +3,12 @@
 
 #include "GenericGaemPlayerState.h"
 #include "GenericGaemHUD.h"
+#include "GenericGaemMode.h"
 #include "Net/UnrealNetwork.h"
 #include "GenericGaemCharacter.h"
 #include "Engine/Engine.h"
 
-AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{MaxHealth}
+AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}
 {
 	bReplicates = true;
 }
@@ -22,6 +23,7 @@ void AGenericGaemPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 
 void AGenericGaemPlayerState::SetGameRole(ERole NewRole)
 {
+	FScopeLock Lock(&GameRoleLock);
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Setting game role to %d for player_id: %d"), static_cast<int32>(NewRole), GetPlayerId());
@@ -98,6 +100,7 @@ void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(ERole RoleToPurc
 	}
 	SetGameRole(RoleToPurchase);
 	SetMoney(FString::FromInt(PlayerMoney - Price));
+	GetWorld()->GetAuthGameMode<AGenericGaemMode>()->MovePlayerToSpawnPoint(this);
 	UE_LOG(LogTemp, Warning, TEXT("Role %hs purchased successfully for player_id: %d. Remaining money: %s"),
 		LocalRole->GetRoleName().data(), GetPlayerId(), *GetMoney());
 }

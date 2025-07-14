@@ -7,11 +7,14 @@
 #include "GenericGaemPlayerState.h"
 #include "GameFramework/GameSession.h"
 #include "GameFramework/GameState.h"
+#include "GenericGaemCharacter.h"
+#include "GenericGaemRoleSpawnpoint.h"
+#include "Kismet/GameplayStatics.h"
 
 static constexpr float _DetermineNextLeaderTimerInterval = 2.0f;
 static constexpr std::string_view _StartingMoney = "251";
 
-AGenericGaemMode::AGenericGaemMode() : _DetermineNextLeaderTimerHandler{}, _DebugHandler{}
+AGenericGaemMode::AGenericGaemMode() : _DetermineNextLeaderTimerHandler{}, _DebugHandler{}, _RoleSpawnPoints{}
 {
 }
 
@@ -34,6 +37,26 @@ void AGenericGaemMode::SetPlayerAsLeader(AGenericGaemPlayerState* NewLeader)
 	NewLeader->SetLastTimeLeader(FDateTime::Now()); // Update the time they were last leader (replicated)
 	NewLeader->SetGameRole(ERole::Leader); // Set them to leader (replicated)
 	Cast<AGenericGaemState>(GameState)->SetLeader(NewLeader->GetPlayerId());
+	MovePlayerToSpawnPoint(NewLeader); // Move the player to the spawn point for the leader
+}
+
+void AGenericGaemMode::LoadSpawnPoints()
+{
+	TArray<AActor*> FoundSpawnPoints{};
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGenericGaemRoleSpawnpoint::StaticClass(), FoundSpawnPoints);
+	for (auto& SpawnPointAsActor : FoundSpawnPoints)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Found spawn point: %s"), *SpawnPointAsActor->GetName());
+		const auto& SpawnPoint = Cast<AGenericGaemRoleSpawnpoint>(SpawnPointAsActor);
+		_RoleSpawnPoints[SpawnPoint->RoleToSpawn] = SpawnPoint;
+	}
+	for (int I = 0; I <= static_cast<int>(ERole::Leader); I++)
+	{
+		if (!_RoleSpawnPoints[static_cast<ERole>(I)])
+		{
+			// TODO: Loop and try again, this should never happen though
+		}
+	}
 }
 
 void AGenericGaemMode::PostLogin(APlayerController* NewPlayer)
@@ -105,4 +128,29 @@ void AGenericGaemMode::OnDebug()
 	NewLeader->SetMoney(TEXT("1000"));
 	NewLeader->SetGameRole(ERole::Peasant); // Set them to peasant (replicated)
 	NewLeader->SetHealth(19.82942f);
+}
+
+void AGenericGaemMode::StartPlay()
+{
+	Super::StartPlay();
+	LoadSpawnPoints();
+}
+
+void AGenericGaemMode::MovePlayerToSpawnPoint(AGenericGaemPlayerState* PlayerState)
+{
+	FScopeLock Lock(&PlayerState->GameRoleLock);
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MovePlayerToSpawnPoint called on client, ignoring"));
+		return;
+	}
+	const auto& RoleToSpawn = PlayerState->GetGameRole();
+	const auto& SpawnLocation = _RoleSpawnPoints[RoleToSpawn]->GetSpawnLocation();
+	const auto& SpawnRotation = _RoleSpawnPoints[RoleToSpawn]->GetSpawnRotation();
+	UE_LOG(LogTemp, Warning, TEXT("Moving player %s to spawn point for role %d at location %s with rotation %s"),
+		*PlayerState->GetPlayerName(), static_cast<int32>(RoleToSpawn), *SpawnLocation.ToString(), *SpawnRotation.ToString());
+	const auto& _Controller = Cast<APlayerController>(PlayerState->GetOwner());
+	const auto& _Character = Cast<AGenericGaemCharacter>(_Controller->GetCharacter());
+	// TODO: Investigate why rotation does not work here
+	_Character->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 }

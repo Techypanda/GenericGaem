@@ -16,6 +16,7 @@ enum class ERole : uint8
 	None = 0,
 	Peasant,
 	Citizen,
+	Monkey,
 	Leader
 };
 

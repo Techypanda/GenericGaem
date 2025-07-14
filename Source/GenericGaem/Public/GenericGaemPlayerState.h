@@ -17,6 +17,8 @@ class AGenericGaemPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
+	// make sure that it finishes assigning a role before it assigns a new one
+	mutable FCriticalSection GameRoleLock;
 	static constexpr float MaxHealth = 100.0f;
 	AGenericGaemPlayerState();
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

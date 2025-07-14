@@ -6,6 +6,7 @@
 #include "LeaderRole.h"
 #include "PeasantRole.h"
 #include "CitizenRole.h"
+#include "MonkeyRole.h"
 
 // Ugly way of converting ERole to IRole, im sure theres a nicer way using templating
 std::unique_ptr<IRole> ERoleHelper::ERoleToRole(ERole InRole)
@@ -18,6 +19,8 @@ std::unique_ptr<IRole> ERoleHelper::ERoleToRole(ERole InRole)
 		return std::make_unique<PeasantRole>();
 	case ERole::Citizen:
 		return std::make_unique<CitizenRole>();
+	case ERole::Monkey:
+		return std::make_unique<MonkeyRole>();
 	default:
 		return std::make_unique<BaseRole>();
 	}
