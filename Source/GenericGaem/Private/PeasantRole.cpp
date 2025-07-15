@@ -3,11 +3,11 @@
 
 #include "PeasantRole.h"
 
-PeasantRole::PeasantRole() : BaseRole(PeasantRole::RoleName, PeasantRole::RoleDescription, PeasantRole::RolePrice)
+UPeasantRole::UPeasantRole() : UBaseRole(UPeasantRole::RoleName, UPeasantRole::RoleDescription, UPeasantRole::RolePrice)
 {
 }
 
-const FColor PeasantRole::GetRoleColor() const
+const FColor UPeasantRole::GetRoleColor() const
 {
 	return FColor{ 115, 74, 22, 255 };
 }

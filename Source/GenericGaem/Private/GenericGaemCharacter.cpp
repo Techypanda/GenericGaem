@@ -11,6 +11,7 @@
 #include "EnhancedInputComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/TextRenderComponent.h"
+#include "IItem.h"
 #include <string>
 
 static constexpr float RoleDisplayZOffset = 100.0f;
@@ -311,7 +312,15 @@ void AGenericGaemCharacter::Swim(const FInputActionInstance& Instance)
 
 void AGenericGaemCharacter::UseAction(const FInputActionInstance& Instance)
 {
-	Use();
+	const auto& _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
+	checkf(_PlayerState, TEXT("Player State is null in UseAction! This should never happen!"));
+	auto EquippedItem = _PlayerState->GetEquippedItem();
+	if (!EquippedItem || !EquippedItem.GetInterface())
+	{
+		return;
+	}
+	// TODO: Validate on server player has item before using it, if they don't ban/kick
+	return EquippedItem.GetInterface()->Use();
 }
 
 void AGenericGaemCharacter::Zoom(const FInputActionInstance& Instance)

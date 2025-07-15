@@ -3,11 +3,11 @@
 
 #include "LeaderRole.h"
 
-LeaderRole::LeaderRole() : BaseRole(LeaderRole::RoleName, LeaderRole::RoleDescription, LeaderRole::RolePrice)
+ULeaderRole::ULeaderRole() : UBaseRole(ULeaderRole::RoleName, ULeaderRole::RoleDescription, ULeaderRole::RolePrice)
 {
 }
 
-const FColor LeaderRole::GetRoleColor() const
+const FColor ULeaderRole::GetRoleColor() const
 {
 	return FColor{ 202, 11, 0, 255 };
 }

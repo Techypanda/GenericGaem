@@ -3,30 +3,30 @@
 
 #include "BaseRole.h"
 
-BaseRole::BaseRole(const std::string_view InRoleName, const std::string_view InRoleDescription, const std::string_view InRolePrice) : _RoleName(InRoleName), _RoleDescription(InRoleDescription), _RolePrice(InRolePrice)
+UBaseRole::UBaseRole() : UBaseRole(BaseRoleName, BaseRoleDescription, BaseRolePrice)
 {
 }
 
-BaseRole::~BaseRole()
+UBaseRole::UBaseRole(const std::string_view InRoleName, const std::string_view InRoleDescription, const std::string_view InRolePrice) : _RoleName(InRoleName), _RoleDescription(InRoleDescription), _RolePrice(InRolePrice)
 {
 }
 
-const FColor BaseRole::GetRoleColor() const
+const FColor UBaseRole::GetRoleColor() const
 {
 	return FColor::Black;
 }
 
-const std::string_view BaseRole::GetRoleName() const
+const std::string_view UBaseRole::GetRoleName() const
 {
 	return _RoleName;
 }
 
-const std::string_view BaseRole::GetRoleDescription() const
+const std::string_view UBaseRole::GetRoleDescription() const
 {
 	return _RoleDescription;
 }
 
-const std::string_view BaseRole::GetRolePrice() const
+const std::string_view UBaseRole::GetRolePrice() const
 {
 	return _RolePrice;
 }

@@ -23,6 +23,6 @@ enum class ERole : uint8
 class ERoleHelper
 {
 public:
-	static std::unique_ptr<IRole> ERoleToRole(ERole InRole);
-	static std::vector<std::unique_ptr<IRole>> GetAllRoles();
+	static IRole* ERoleToRole(ERole InRole);
+	static std::vector<IRole*> GetAllRoles();
 };

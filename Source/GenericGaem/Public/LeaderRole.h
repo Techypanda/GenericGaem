@@ -4,16 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "BaseRole.h"
+#include "LeaderRole.generated.h"
 
 /**
  * 
  */
-class GENERICGAEM_API LeaderRole : public BaseRole
+UCLASS()
+class GENERICGAEM_API ULeaderRole : public UBaseRole
 {
+	GENERATED_BODY()
 public:
 	static constexpr std::string_view RoleName = "Leader";
 	static constexpr std::string_view RoleDescription = "Rule over people, probably corrupt, probably a nice guy, kill people?";
 	static constexpr std::string_view RolePrice = "99999999999999999"; // You should not be buying this role
-	LeaderRole();
+	ULeaderRole();
 	const FColor GetRoleColor() const override;
 };

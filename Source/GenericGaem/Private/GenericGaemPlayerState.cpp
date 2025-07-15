@@ -6,9 +6,10 @@
 #include "GenericGaemMode.h"
 #include "Net/UnrealNetwork.h"
 #include "GenericGaemCharacter.h"
+#include "IItem.h"
 #include "Engine/Engine.h"
 
-AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}
+AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}, _EquippedItem{ nullptr }
 {
 	bReplicates = true;
 }
@@ -136,6 +137,24 @@ void AGenericGaemPlayerState::SetInvulnerability(bool bInInvulnerability)
 bool AGenericGaemPlayerState::GetInvulnerability() const
 {
 	return bIsInvulnerable;
+}
+
+const TScriptInterface<IItem> AGenericGaemPlayerState::GetEquippedItem() const
+{
+	if (!_EquippedItem || !_EquippedItem->Implements<UItem>()) {
+		return nullptr;
+	}
+	return TScriptInterface<IItem>(_EquippedItem);
+}
+
+void AGenericGaemPlayerState::EquipItem(TScriptInterface<class IItem> ItemToEquip)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EquipItem called on client, but this should only be called on the server!"));
+		return;
+	}
+	_EquippedItem = ItemToEquip.GetObject();
 }
 
 void AGenericGaemPlayerState::OnRep_Health()

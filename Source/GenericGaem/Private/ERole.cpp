@@ -9,26 +9,27 @@
 #include "MonkeyRole.h"
 
 // Ugly way of converting ERole to IRole, im sure theres a nicer way using templating
-std::unique_ptr<IRole> ERoleHelper::ERoleToRole(ERole InRole)
+// TODO: Swap from this approach to the TScriptable
+IRole* ERoleHelper::ERoleToRole(ERole InRole)
 {
 	switch (InRole)
 	{
 	case ERole::Leader:
-		return std::make_unique<LeaderRole>();
+		return NewObject<ULeaderRole>();
 	case ERole::Peasant:
-		return std::make_unique<PeasantRole>();
+		return NewObject<UPeasantRole>();
 	case ERole::Citizen:
-		return std::make_unique<CitizenRole>();
+		return NewObject<UCitizenRole>();
 	case ERole::Monkey:
-		return std::make_unique<MonkeyRole>();
+		return NewObject<UMonkeyRole>();
 	default:
-		return std::make_unique<BaseRole>();
+		return NewObject<UBaseRole>();
 	}
 }
 
-std::vector<std::unique_ptr<IRole>> ERoleHelper::GetAllRoles()
+std::vector<IRole*> ERoleHelper::GetAllRoles()
 {
-	auto OutVector = std::vector<std::unique_ptr<IRole>>{};
+	auto OutVector = std::vector<IRole*>{};
 	for (int I = 0; I <= static_cast<int>(ERole::Leader); I++)
 	{
 		OutVector.push_back(ERoleHelper::ERoleToRole(static_cast<ERole>(I)));

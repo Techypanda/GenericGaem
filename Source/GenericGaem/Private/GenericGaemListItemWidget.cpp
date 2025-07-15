@@ -10,7 +10,7 @@ bool UGenericGaemListItemWidget::SelectRole(int32 ERoleVal)
 {
 	const auto RequestedRole = ERoleHelper::ERoleToRole(static_cast<ERole>(ERoleVal));
 	const auto PlayerState = GetOwningPlayerState<AGenericGaemPlayerState>();
-	const auto Price = FCString::Atoi(*FString(RequestedRole.get()->GetRolePrice().data()));
+	const auto Price = FCString::Atoi(*FString(RequestedRole->GetRolePrice().data()));
 	const auto PlayerMoney = FCString::Atoi(*PlayerState->GetMoney());
 	const auto CanPurchase = PlayerMoney >= Price;
 	UE_LOG(LogTemp, Warning, TEXT("Player Money: %d, Role Price: %d, %hs"), PlayerMoney, Price, CanPurchase ? "can purchase" : "can't purchase");

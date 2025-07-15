@@ -3,11 +3,11 @@
 
 #include "CitizenRole.h"
 
-CitizenRole::CitizenRole() : BaseRole(CitizenRole::RoleName, CitizenRole::RoleDescription, CitizenRole::RolePrice)
+UCitizenRole::UCitizenRole() : UBaseRole(UCitizenRole::RoleName, UCitizenRole::RoleDescription, UCitizenRole::RolePrice)
 {
 }
 
-const FColor CitizenRole::GetRoleColor() const
+const FColor UCitizenRole::GetRoleColor() const
 {
 	return FColor{ 0, 0, 255, 255 };
 }
