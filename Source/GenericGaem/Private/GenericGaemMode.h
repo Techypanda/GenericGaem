@@ -17,6 +17,7 @@ class AGenericGaemMode : public AGameModeBase
 	GENERATED_BODY()
 public:
 	AGenericGaemMode();
+	void InitializePlayer(class APlayerController* NewPlayer);
 	void PostLogin(APlayerController* NewPlayer) override;
 	void InitGameState() override;
 	void DetermineNextLeader();
@@ -25,6 +26,8 @@ public:
 	void MovePlayerToSpawnPoint(class AGenericGaemPlayerState* PlayerState);
 	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GenericGaemMode")
+	TSubclassOf<class AMeleeWeaponItem> StarterWeapon;
 	FTimerHandle _DetermineNextLeaderTimerHandler;
 	FTimerHandle _DebugHandler;
 private:

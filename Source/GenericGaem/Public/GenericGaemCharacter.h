@@ -31,9 +31,6 @@ public:
 	void OnRep_PlayerState() override;
 	DECLARE_EVENT(FLayerViewModel, FEscapeMenuEvent)
 	FEscapeMenuEvent& OnEscapeMenu() { return _EscapeMenuEvent; }
-	void Use();
-	UFUNCTION(Server, Unreliable)
-	void ServerUse(FVector ActorForwardVector);
 	UFUNCTION(Server, Reliable)
 	void ServerDeath();
 protected:

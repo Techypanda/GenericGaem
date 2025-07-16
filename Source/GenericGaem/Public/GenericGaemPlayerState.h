@@ -60,6 +60,8 @@ public:
 	const TScriptInterface<class IItem> GetEquippedItem() const;
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
 	void EquipItem(TScriptInterface<class IItem> ItemToEquip);
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
+	void AddToInventory(class ABaseItem* Item);
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Invulnerability)
 	bool bIsInvulnerable;
@@ -94,5 +96,6 @@ protected:
 	FRolePurchased _RolePurchasedEvent;
 	FHealthChangedEvent _HealthChangedEvent;
 	// Unreal Engine seems to suggest storing a UObject pointer for interfaces... https://dev.epicgames.com/documentation/en-us/unreal-engine/interfaces-in-unreal-engine#safelystoreobjectandinterfacepointers
-	UObject* _EquippedItem;
+	UPROPERTY(Replicated)
+	TObjectPtr<class ABaseItem> _EquippedItem;
 };

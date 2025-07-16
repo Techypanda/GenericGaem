@@ -7,7 +7,9 @@
 #include "Net/UnrealNetwork.h"
 #include "GenericGaemCharacter.h"
 #include "IItem.h"
+#include "BaseItem.h"
 #include "Engine/Engine.h"
+#include "Engine/ActorChannel.h"
 
 AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}, _EquippedItem{ nullptr }
 {
@@ -20,6 +22,7 @@ void AGenericGaemPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(AGenericGaemPlayerState, _AssignedRole);
 	DOREPLIFETIME(AGenericGaemPlayerState, _LastLeaderDateTimeString);
 	DOREPLIFETIME(AGenericGaemPlayerState, bIsInvulnerable);
+	DOREPLIFETIME(AGenericGaemPlayerState, _EquippedItem);
 }
 
 void AGenericGaemPlayerState::SetGameRole(ERole NewRole)
@@ -108,8 +111,15 @@ void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(ERole RoleToPurc
 
 void AGenericGaemPlayerState::SetHealth(float NewHealth)
 {
-	if (GetLocalRole() == ROLE_Authority && !bIsInvulnerable)
+	UE_LOG(LogTemp, Warning, TEXT("SetHealth called with NewHealth: %.2f for player_id: %d"), NewHealth, GetPlayerId());
+	if (GetLocalRole() != ROLE_Authority)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SetHealth called on client, ignoring for player_id: %d"), GetPlayerId());
+		return;
+	}
+	if (!bIsInvulnerable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Setting health for player_id: %d to %.2f"), GetPlayerId(), NewHealth);
 		NewHealth = std::clamp(NewHealth, 0.0f, MaxHealth);
 		if (NewHealth <= 0.0f) {
 			const auto _Player = GetPawn<AGenericGaemCharacter>();
@@ -117,6 +127,9 @@ void AGenericGaemPlayerState::SetHealth(float NewHealth)
 		}
 		_Health = NewHealth;
 		OnHealthUpdate();
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("SetHealth called player is invulnerable, ignoring for player_id: %d"), GetPlayerId());
 	}
 }
 
@@ -141,7 +154,14 @@ bool AGenericGaemPlayerState::GetInvulnerability() const
 
 const TScriptInterface<IItem> AGenericGaemPlayerState::GetEquippedItem() const
 {
-	if (!_EquippedItem || !_EquippedItem->Implements<UItem>()) {
+	UE_LOG(LogTemp, Warning, TEXT("GetEquippedItem called for player_id: %d"), GetPlayerId());
+	if (!_EquippedItem) {
+		UE_LOG(LogTemp, Warning, TEXT("No equipped item for player_id: %d"), GetPlayerId());
+		return nullptr;
+	}
+	if (!_EquippedItem->Implements<UItem>())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Equipped item does not implement IItem interface for player_id: %d"), GetPlayerId());
 		return nullptr;
 	}
 	return TScriptInterface<IItem>(_EquippedItem);
@@ -154,7 +174,19 @@ void AGenericGaemPlayerState::EquipItem(TScriptInterface<class IItem> ItemToEqui
 		UE_LOG(LogTemp, Warning, TEXT("EquipItem called on client, but this should only be called on the server!"));
 		return;
 	}
-	_EquippedItem = ItemToEquip.GetObject();
+	UE_LOG(LogTemp, Warning, TEXT("No equipped item for player_id: %d"), GetPlayerId());
+	_EquippedItem = Cast<ABaseItem>(ItemToEquip.GetObject());
+	UE_LOG(LogTemp, Warning, TEXT("Equipped item: %s for player_id: %d"), *(_EquippedItem ? _EquippedItem->GetName() : FString("None")), GetPlayerId());
+}
+
+void AGenericGaemPlayerState::AddToInventory(ABaseItem* Item)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AddToInventory called on client, but this should only be called on the server!"));
+		return;
+	}
+	// TODO: add to some replicated list data structure
 }
 
 void AGenericGaemPlayerState::OnRep_Health()

@@ -10,12 +10,38 @@
 #include "GenericGaemCharacter.h"
 #include "GenericGaemRoleSpawnpoint.h"
 #include "Kismet/GameplayStatics.h"
+#include "MeleeWeaponItem.h"
 
 static constexpr float _DetermineNextLeaderTimerInterval = 2.0f;
 static constexpr std::string_view _StartingMoney = "251";
 
 AGenericGaemMode::AGenericGaemMode() : _DetermineNextLeaderTimerHandler{}, _DebugHandler{}, _RoleSpawnPoints{}
 {
+}
+
+void AGenericGaemMode::InitializePlayer(APlayerController* NewPlayer)
+{
+	AGenericGaemPlayerState* PlayerState = Cast<AGenericGaemPlayerState>(NewPlayer->PlayerState);
+	if (!PlayerState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerState is not of type AGenericGaemPlayerState for player: %s, kicking"), *NewPlayer->GetName());
+		FText KickReason = FText::FromString("Failed to retrieve player state, please reconnect");
+		GameSession->KickPlayer(NewPlayer, KickReason);
+		return;
+	}
+	PlayerState->SetGameRole(ERole::None);
+	PlayerState->SetLastTimeLeader(FDateTime::UtcNow());
+	PlayerState->SetMoney(FString(_StartingMoney.data()));
+	PlayerState->SetHealth(AGenericGaemPlayerState::MaxHealth);
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = PlayerState;
+	const auto& _StarterWeaponSpawned = GetWorld()->SpawnActor<AMeleeWeaponItem>(
+		StarterWeapon,
+		SpawnParams
+	);
+	PlayerState->AddToInventory(_StarterWeaponSpawned);
+	PlayerState->EquipItem(_StarterWeaponSpawned);
+	UE_LOG(LogTemp, Warning, TEXT("Assigned PlayerId: %d to player: %s, %s time joined"), PlayerState->GetPlayerId(), *NewPlayer->GetName(), *PlayerState->GetLastTimeLeaderAsDateTime().ToString());
 }
 
 void AGenericGaemMode::InitGameState()
@@ -63,19 +89,7 @@ void AGenericGaemMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 	UE_LOG(LogTemp, Warning, TEXT("AGenericGaemMode::PostLogin called for player!: %s"), *NewPlayer->GetName());
-	AGenericGaemPlayerState* PlayerState = Cast<AGenericGaemPlayerState>(NewPlayer->PlayerState);
-	if (!PlayerState)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerState is not of type AGenericGaemPlayerState for player: %s, kicking"), *NewPlayer->GetName());
-		FText KickReason = FText::FromString("Failed to retrieve player state, please reconnect");
-		GameSession->KickPlayer(NewPlayer, KickReason);
-		return;
-	}
-	PlayerState->SetGameRole(ERole::None);
-	PlayerState->SetLastTimeLeader(FDateTime::UtcNow());
-	PlayerState->SetMoney(FString(_StartingMoney.data()));
-	PlayerState->SetHealth(AGenericGaemPlayerState::MaxHealth);
-	UE_LOG(LogTemp, Warning, TEXT("Assigned PlayerId: %d to player: %s, %s time joined"), PlayerState->GetPlayerId(), *NewPlayer->GetName(), *PlayerState->GetLastTimeLeaderAsDateTime().ToString());
+	InitializePlayer(NewPlayer);
 	// FOR DEBUG
 	// after 30 seconds, set the players role to peasant
 	// GetWorld()->GetTimerManager().SetTimer(_DebugHandler, this, &AGenericGaemMode::OnDebug, 5.0f, false);
