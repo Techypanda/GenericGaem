@@ -175,6 +175,11 @@ void AGenericGaemPlayerState::EquipItem(TScriptInterface<class IItem> ItemToEqui
 		return;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("No equipped item for player_id: %d"), GetPlayerId());
+	if (!HasItemInInventory(ItemToEquip))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Item to equip is not in inventory for player_id: %d"), GetPlayerId());
+		return;
+	}
 	_EquippedItem = Cast<ABaseItem>(ItemToEquip.GetObject());
 	UE_LOG(LogTemp, Warning, TEXT("Equipped item: %s for player_id: %d"), *(_EquippedItem ? _EquippedItem->GetName() : FString("None")), GetPlayerId());
 }
@@ -186,7 +191,54 @@ void AGenericGaemPlayerState::AddToInventory(ABaseItem* Item)
 		UE_LOG(LogTemp, Warning, TEXT("AddToInventory called on client, but this should only be called on the server!"));
 		return;
 	}
-	// TODO: add to some replicated list data structure
+	if (_Inventory.Num() >= MaxInventorySize)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Inventory is full for player_id: %d, cannot add item: %s"), GetPlayerId(), *Item->GetName());
+		return;
+	}
+	_Inventory.Add(Item);
+	OnInventoryUpdate();
+}
+
+void AGenericGaemPlayerState::InventoryClear()
+{
+	for (int I = 0; I < _Inventory.Num(); I++)
+	{
+		const auto& ActorToDelete = _Inventory.Pop();
+		ActorToDelete->Destroy();
+	}
+}
+
+bool AGenericGaemPlayerState::HasItemInInventory(TScriptInterface<class IItem> ItemToEquip)
+{
+	// could optimize with a map here...
+	for (const auto& _Item : _Inventory)
+	{
+		if (_Item && _Item->Implements<UItem>() && _Item == ItemToEquip.GetObject())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Item %s found in inventory for player_id: %d"), *_Item->GetName(), GetPlayerId());
+			return true;
+		}
+	}
+	return false;
+}
+
+void AGenericGaemPlayerState::OnRep_Inventory()
+{
+	OnInventoryUpdate();
+}
+
+void AGenericGaemPlayerState::OnInventoryUpdate()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server: Inventory Updated for player: %d, Inventory Size: %d"), GetPlayerId(), _Inventory.Num());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client: Inventory Updated for player: %d, Inventory Size: %d"), GetPlayerId(), _Inventory.Num());
+	}
+	_InventoryChangedEvent.Broadcast();
 }
 
 void AGenericGaemPlayerState::OnRep_Health()

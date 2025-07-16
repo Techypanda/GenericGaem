@@ -17,6 +17,7 @@ class AGenericGaemPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
+	static constexpr int MaxInventorySize = 32;
 	// make sure that it finishes assigning a role before it assigns a new one
 	mutable FCriticalSection GameRoleLock;
 	static constexpr float MaxHealth = 100.0f;
@@ -46,6 +47,8 @@ public:
 	FRolePurchased& OnRolePurchased() { return _RolePurchasedEvent; }
 	DECLARE_EVENT(FLayerViewModel, FHealthChangedEvent)
 	FHealthChangedEvent& OnHealthChanged() { return _HealthChangedEvent; }
+	DECLARE_EVENT(FLayerViewModel, FInventoryChangedEvent)
+	FHealthChangedEvent& OnInventoryChanged() { return _HealthChangedEvent; }
 	UFUNCTION(Server, Reliable)
 	void ServerPurchaseRole(ERole RoleToPurchase);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
@@ -62,7 +65,17 @@ public:
 	void EquipItem(TScriptInterface<class IItem> ItemToEquip);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
 	void AddToInventory(class ABaseItem* Item);
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
+	void InventoryClear();
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
+	bool HasItemInInventory(TScriptInterface<class IItem> ItemToEquip);
 protected:
+	// TStaticArray would work great here! - but... UE5 cant do UPROPERTY with it - https://stackoverflow.com/questions/77759308/unreal-engine-5-cant-find-tstaticarray
+	UPROPERTY(ReplicatedUsing = OnRep_Inventory)
+	TArray<TObjectPtr<class ABaseItem>> _Inventory;
+	UFUNCTION()
+	void OnRep_Inventory();
+	void OnInventoryUpdate();
 	UPROPERTY(ReplicatedUsing = OnRep_Invulnerability)
 	bool bIsInvulnerable;
 	UPROPERTY(ReplicatedUsing = OnRep_Health)
@@ -95,6 +108,7 @@ protected:
 	FRoleChangedEvent _RoleChangedEvent;
 	FRolePurchased _RolePurchasedEvent;
 	FHealthChangedEvent _HealthChangedEvent;
+	FInventoryChangedEvent _InventoryChangedEvent;
 	// Unreal Engine seems to suggest storing a UObject pointer for interfaces... https://dev.epicgames.com/documentation/en-us/unreal-engine/interfaces-in-unreal-engine#safelystoreobjectandinterfacepointers
 	UPROPERTY(Replicated)
 	TObjectPtr<class ABaseItem> _EquippedItem;

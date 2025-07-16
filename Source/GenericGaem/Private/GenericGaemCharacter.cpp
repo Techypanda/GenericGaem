@@ -129,6 +129,7 @@ void AGenericGaemCharacter::SetVulnerabilityBasedOffRole(ERole NewRole)
 void AGenericGaemCharacter::ServerDeath_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Server Death called on %s"), *GetName());
+	GetPlayerState<AGenericGaemPlayerState>()->InventoryClear();
 	// TODO: Prevent Movement, ETC
 	auto DeathLocation = GetActorLocation();
 	DeathLocation.Z -= 90.0f;
