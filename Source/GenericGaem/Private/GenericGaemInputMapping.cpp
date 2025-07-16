@@ -1,5 +1,6 @@
 #include "GenericGaemInputMapping.h"
 #include "InputAction.h"
+#include <unordered_map>
 
 UGenericGaemInputMapping::UGenericGaemInputMapping()
 {
@@ -8,6 +9,7 @@ UGenericGaemInputMapping::UGenericGaemInputMapping()
 
 void UGenericGaemInputMapping::Initialize()
 {
+	SelectActiveActions = TArray<UInputAction*>{};
 	TriggerPressed = NewObject<UInputTriggerPressed>(this, TEXT("TriggerPressed"));
 	TriggerReleased = NewObject<UInputTriggerReleased>(this, TEXT("TriggerReleased"));
 	TriggerDown = NewObject<UInputTriggerDown>(this, TEXT("TriggerDown"));
@@ -21,6 +23,10 @@ void UGenericGaemInputMapping::Initialize()
 	CreateEscapeMenuAction();
 	CreateUseAction();
 	CreateSwimAction();
+	for (int I = 1; I < 10; I++)
+	{
+		SelectActiveActions.Add(CreateSelectActiveItemAction(I));
+	}
 }
 
 void UGenericGaemInputMapping::CreateMoveForwardAction()
@@ -138,4 +144,17 @@ void UGenericGaemInputMapping::CreateSwimAction()
 	SwimDownMapping.Modifiers.Add(NegateModifier);
 	Mappings.Add(SwimUpMapping);
 	Mappings.Add(SwimDownMapping);
+}
+
+UInputAction* UGenericGaemInputMapping::CreateSelectActiveItemAction(int Number)
+{
+	std::unordered_map<int, FKey> NumberToEKey{ {1, EKeys::One}, {2, EKeys::Two}, {3, EKeys::Three}, {4, EKeys::Four}, {5, EKeys::Five}, {6, EKeys::Six}, {7, EKeys::Seven}, {8, EKeys::Eight}, {9, EKeys::Nine} };
+	UE_LOG(LogTemp, Warning, TEXT("Creating CreateSelectActiveItemAction in GenericGaemInputMapping"));
+	const auto& NewAction = NewObject<UInputAction>(this, FName(FString::Printf(TEXT("A_SelectActive_%d"), Number)));
+	NewAction->ValueType = EInputActionValueType::Boolean;
+	NewAction->ActionDescription = FText::FromString("Handle Selecting Active Item");
+	auto UseMapping = FEnhancedActionKeyMapping(NewAction, NumberToEKey[Number]);
+	UseMapping.Triggers.Add(TriggerPressed);
+	Mappings.Add(UseMapping);
+	return NewAction;
 }

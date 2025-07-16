@@ -12,7 +12,6 @@
 #include "Engine/ActorChannel.h"
 
 static constexpr int ActiveItemsCount = 9;
-static constexpr int NoItemSelected = -1;
 
 AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}, _EquippedItem{ nullptr }, _ActiveItems{}, _SelectedActiveItem{NoItemSelected}
 {
@@ -274,6 +273,7 @@ void AGenericGaemPlayerState::SetActiveItem(int Index, ABaseItem* Item)
 
 void AGenericGaemPlayerState::SetSelectedActiveItem(int Index)
 {
+	UE_LOG(LogTemp, Warning, TEXT("SetSelectedActiveItem called with Index: %d for player_id: %d"), Index, GetPlayerId());
 	if (Index != NoItemSelected && (Index < 0 || Index >= _ActiveItems.Num()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for SetSelectedActiveItem, must be between 0 and %d"), Index, _ActiveItems.Num() - 1);

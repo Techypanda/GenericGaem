@@ -74,4 +74,15 @@ private:
 	void PossessedBy(AController* NewController) override;
 	void SetVisibilityBasedOffRole(ERole NewRole);
 	void SetVulnerabilityBasedOffRole(ERole NewRole);
+	// Ugly to cleanup
+	void SelectItem(int Idx);
+	void SelectItem1(const FInputActionInstance& Instance);
+	void SelectItem2(const FInputActionInstance& Instance);
+	void SelectItem3(const FInputActionInstance& Instance);
+	void SelectItem4(const FInputActionInstance& Instance);
+	void SelectItem5(const FInputActionInstance& Instance);
+	void SelectItem6(const FInputActionInstance& Instance);
+	void SelectItem7(const FInputActionInstance& Instance);
+	void SelectItem8(const FInputActionInstance& Instance);
+	void SelectItem9(const FInputActionInstance& Instance);
 };

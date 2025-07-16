@@ -17,6 +17,7 @@ class AGenericGaemPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
+	static constexpr int NoItemSelected = -1;
 	static constexpr int MaxInventorySize = 32;
 	// make sure that it finishes assigning a role before it assigns a new one
 	mutable FCriticalSection GameRoleLock;

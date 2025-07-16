@@ -126,6 +126,63 @@ void AGenericGaemCharacter::SetVulnerabilityBasedOffRole(ERole NewRole)
 	}
 }
 
+void AGenericGaemCharacter::SelectItem(int Idx)
+{
+	const auto& _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
+	if (!_PlayerState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerState is null in SelectItem"));
+		return;
+	}
+	const auto& CurrentlySelectedIdx = _PlayerState->GetSelectedActiveItem();
+	_PlayerState->SetSelectedActiveItem(CurrentlySelectedIdx == Idx ? AGenericGaemPlayerState::NoItemSelected : Idx);
+}
+
+void AGenericGaemCharacter::SelectItem1(const FInputActionInstance& Instance)
+{
+	SelectItem(0);
+}
+
+void AGenericGaemCharacter::SelectItem2(const FInputActionInstance& Instance)
+{
+	SelectItem(1);
+}
+
+void AGenericGaemCharacter::SelectItem3(const FInputActionInstance& Instance)
+{
+	SelectItem(2);
+}
+
+void AGenericGaemCharacter::SelectItem4(const FInputActionInstance& Instance)
+{
+	SelectItem(3);
+}
+
+void AGenericGaemCharacter::SelectItem5(const FInputActionInstance& Instance)
+{
+	SelectItem(4);
+}
+
+void AGenericGaemCharacter::SelectItem6(const FInputActionInstance& Instance)
+{
+	SelectItem(5);
+}
+
+void AGenericGaemCharacter::SelectItem7(const FInputActionInstance& Instance)
+{
+	SelectItem(6);
+}
+
+void AGenericGaemCharacter::SelectItem8(const FInputActionInstance& Instance)
+{
+	SelectItem(7);
+}
+
+void AGenericGaemCharacter::SelectItem9(const FInputActionInstance& Instance)
+{
+	SelectItem(8);
+}
+
 void AGenericGaemCharacter::ServerDeath_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Server Death called on %s"), *GetName());
@@ -178,6 +235,16 @@ void AGenericGaemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	Input->BindAction(LoadedMapping->EscapeMenuAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::EscapeMenu);
 	Input->BindAction(LoadedMapping->UseAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::UseAction);
 	Input->BindAction(LoadedMapping->SwimAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::Swim);
+	// Ugly, there is probably a better way of doing this involving a loop and saving things to class variables
+	Input->BindAction(LoadedMapping->SelectActiveActions[0], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem1);
+	Input->BindAction(LoadedMapping->SelectActiveActions[1], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem2);
+	Input->BindAction(LoadedMapping->SelectActiveActions[2], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem3);
+	Input->BindAction(LoadedMapping->SelectActiveActions[3], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem4);
+	Input->BindAction(LoadedMapping->SelectActiveActions[4], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem5);
+	Input->BindAction(LoadedMapping->SelectActiveActions[5], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem6);
+	Input->BindAction(LoadedMapping->SelectActiveActions[6], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem7);
+	Input->BindAction(LoadedMapping->SelectActiveActions[7], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem8);
+	Input->BindAction(LoadedMapping->SelectActiveActions[8], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem9);
 }
 
 USpringArmComponent* AGenericGaemCharacter::GetCameraSpringArmComponent()
