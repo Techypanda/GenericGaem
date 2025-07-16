@@ -20,4 +20,5 @@ class GENERICGAEM_API IItem
 	GENERATED_BODY()
 public:
 	virtual void Use() = 0;
+	virtual FString Name() = 0;
 };

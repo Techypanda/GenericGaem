@@ -24,6 +24,7 @@ void UGenericGaemWidget::InitializeWidget(UWorld* World)
 	PlayerState->OnRoleChanged().AddUObject(this, &UGenericGaemWidget::OnRoleChanged);
 	PlayerState->OnRolePurchased().AddUObject(this, &UGenericGaemWidget::OnRolePurchased);
 	PlayerState->OnHealthChanged().AddUObject(this, &UGenericGaemWidget::OnHealthChanged);
+	PlayerState->OnSelectedActiveItemChanged().AddUObject(this, &UGenericGaemWidget::OnActiveItemSelectedChanged);
 	Player->OnEscapeMenu().AddUObject(this, &UGenericGaemWidget::OnEscapeMenu);
 }
 
@@ -35,6 +36,11 @@ void UGenericGaemWidget::OnEscapeMenu_Implementation()
 void UGenericGaemWidget::OnHealthChanged_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Health changed in GenericGaemWidget"));
+}
+
+void UGenericGaemWidget::OnActiveItemSelectedChanged_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Active item selected changed in GenericGaemWidget"));
 }
 
 void UGenericGaemWidget::PostLoad()

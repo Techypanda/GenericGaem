@@ -39,6 +39,8 @@ public:
 	void SetMoney(FString NewMoney);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
 	FString GetMoney() const;
+	DECLARE_EVENT(FLayerViewModel, FSelectedActiveItemChanged)
+	FSelectedActiveItemChanged& OnSelectedActiveItemChanged() { return _SelectedActiveItemChangedEvent; }
 	DECLARE_EVENT(FLayerViewModel, FMoneyChangedEvent)
 	FMoneyChangedEvent& OnMoneyChanged() { return _MoneyChangedEvent; }
 	DECLARE_EVENT(FLayerViewModel, FRoleChangedEvent)
@@ -63,16 +65,32 @@ public:
 	const TScriptInterface<class IItem> GetEquippedItem() const;
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
 	void EquipItem(TScriptInterface<class IItem> ItemToEquip);
+	UFUNCTION(Server, Unreliable)
+	void ServerEquipItem(const TScriptInterface<class IItem>& ItemToEquip);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
 	void AddToInventory(class ABaseItem* Item);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
 	void InventoryClear();
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
 	bool HasItemInInventory(TScriptInterface<class IItem> ItemToEquip);
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
+	class ABaseItem* GetActiveItem(int Index) const;
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
+	class ABaseItem* const& GetInventoryItem(int Index) const;
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
+	void SetActiveItem(int Index, class ABaseItem* Item);
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
+	void SetSelectedActiveItem(int Index);
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
+	int GetSelectedActiveItem();
 protected:
 	// TStaticArray would work great here! - but... UE5 cant do UPROPERTY with it - https://stackoverflow.com/questions/77759308/unreal-engine-5-cant-find-tstaticarray
 	UPROPERTY(ReplicatedUsing = OnRep_Inventory)
-	TArray<TObjectPtr<class ABaseItem>> _Inventory;
+	TArray<class ABaseItem*> _Inventory;
+	UPROPERTY(Replicated)
+	TArray<class ABaseItem*> _ActiveItems;
+	UPROPERTY(Replicated)
+	int _SelectedActiveItem;
 	UFUNCTION()
 	void OnRep_Inventory();
 	void OnInventoryUpdate();
@@ -109,6 +127,7 @@ protected:
 	FRolePurchased _RolePurchasedEvent;
 	FHealthChangedEvent _HealthChangedEvent;
 	FInventoryChangedEvent _InventoryChangedEvent;
+	FSelectedActiveItemChanged _SelectedActiveItemChangedEvent;
 	// Unreal Engine seems to suggest storing a UObject pointer for interfaces... https://dev.epicgames.com/documentation/en-us/unreal-engine/interfaces-in-unreal-engine#safelystoreobjectandinterfacepointers
 	UPROPERTY(Replicated)
 	TObjectPtr<class ABaseItem> _EquippedItem;

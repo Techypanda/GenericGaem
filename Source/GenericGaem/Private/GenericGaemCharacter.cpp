@@ -256,7 +256,10 @@ void AGenericGaemCharacter::Swim(const FInputActionInstance& Instance)
 void AGenericGaemCharacter::UseAction(const FInputActionInstance& Instance)
 {
 	const auto& _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
-	checkf(_PlayerState, TEXT("Player State is null in UseAction! This should never happen!"));
+	if (!_PlayerState)
+	{
+		return;
+	}
 	auto EquippedItem = _PlayerState->GetEquippedItem();
 	if (!EquippedItem || !EquippedItem.GetInterface())
 	{

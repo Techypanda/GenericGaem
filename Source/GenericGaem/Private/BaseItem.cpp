@@ -10,6 +10,11 @@ ABaseItem::ABaseItem()
 	bNetUseOwnerRelevancy = true; // Use the owner's relevancy for this item
 }
 
+FString ABaseItem::Name()
+{
+	return ItemName;
+}
+
 void ABaseItem::Use()
 {
 }

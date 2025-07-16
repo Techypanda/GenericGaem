@@ -15,7 +15,10 @@ class GENERICGAEM_API ABaseItem : public AActor, public IItem
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	FString ItemName;
 	ABaseItem();
+	virtual FString Name() override;
 	virtual void Use() override;
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

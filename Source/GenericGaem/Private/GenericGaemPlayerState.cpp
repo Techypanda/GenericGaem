@@ -11,9 +11,16 @@
 #include "Engine/Engine.h"
 #include "Engine/ActorChannel.h"
 
-AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}, _EquippedItem{ nullptr }
+static constexpr int ActiveItemsCount = 9;
+static constexpr int NoItemSelected = -1;
+
+AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}, _EquippedItem{ nullptr }, _ActiveItems{}, _SelectedActiveItem{NoItemSelected}
 {
 	bReplicates = true;
+	for (int I = 0; I < ActiveItemsCount; I++)
+	{
+		_ActiveItems.Add(nullptr); // we want to make sure theres always 9 items
+	}
 }
 
 void AGenericGaemPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -174,6 +181,12 @@ void AGenericGaemPlayerState::EquipItem(TScriptInterface<class IItem> ItemToEqui
 		UE_LOG(LogTemp, Warning, TEXT("EquipItem called on client, but this should only be called on the server!"));
 		return;
 	}
+	if (ItemToEquip == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("player_id: %d tried to equip None, Equipping nothing"), GetPlayerId());
+		_EquippedItem = nullptr;
+		return;
+	}
 	UE_LOG(LogTemp, Warning, TEXT("No equipped item for player_id: %d"), GetPlayerId());
 	if (!HasItemInInventory(ItemToEquip))
 	{
@@ -182,6 +195,17 @@ void AGenericGaemPlayerState::EquipItem(TScriptInterface<class IItem> ItemToEqui
 	}
 	_EquippedItem = Cast<ABaseItem>(ItemToEquip.GetObject());
 	UE_LOG(LogTemp, Warning, TEXT("Equipped item: %s for player_id: %d"), *(_EquippedItem ? _EquippedItem->GetName() : FString("None")), GetPlayerId());
+}
+
+void AGenericGaemPlayerState::ServerEquipItem_Implementation(const TScriptInterface<class IItem>& ItemToEquip)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ServerEquipItem called for player_id: %d"), GetPlayerId());
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ServerEquipItem called on client, but this should only be called on the server!"));
+		return;
+	}
+	EquipItem(ItemToEquip);
 }
 
 void AGenericGaemPlayerState::AddToInventory(ABaseItem* Item)
@@ -221,6 +245,49 @@ bool AGenericGaemPlayerState::HasItemInInventory(TScriptInterface<class IItem> I
 		}
 	}
 	return false;
+}
+
+ABaseItem* AGenericGaemPlayerState::GetActiveItem(int Index) const
+{
+	return _ActiveItems[Index];
+}
+
+ABaseItem* const& AGenericGaemPlayerState::GetInventoryItem(int Index) const
+{
+	return _Inventory[Index];
+}
+
+void AGenericGaemPlayerState::SetActiveItem(int Index, ABaseItem* Item)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SetActiveItem called on client, but this should only be called on the server!"));
+		return;
+	}
+	if (Index < 0 || Index >= _ActiveItems.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for SetActiveItem, must be between 0 and %d"), Index, _ActiveItems.Num() - 1);
+		return;
+	}
+	_ActiveItems[Index] = Item;
+}
+
+void AGenericGaemPlayerState::SetSelectedActiveItem(int Index)
+{
+	if (Index != NoItemSelected && (Index < 0 || Index >= _ActiveItems.Num()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for SetSelectedActiveItem, must be between 0 and %d"), Index, _ActiveItems.Num() - 1);
+		return;
+	}
+	_SelectedActiveItem = Index;
+	// We server RPC here as its called from Widget
+	ServerEquipItem(Index != NoItemSelected ? _ActiveItems[Index] : nullptr);
+	_SelectedActiveItemChangedEvent.Broadcast();
+}
+
+int AGenericGaemPlayerState::GetSelectedActiveItem()
+{
+	return _SelectedActiveItem;
 }
 
 void AGenericGaemPlayerState::OnRep_Inventory()
