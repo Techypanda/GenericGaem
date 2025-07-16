@@ -221,6 +221,14 @@ void AGenericGaemPlayerState::AddToInventory(ABaseItem* Item)
 	}
 	_Inventory.Add(Item);
 	OnInventoryUpdate();
+	for (int I = 0; I < _ActiveItems.Num(); I++)
+	{
+		if (!_ActiveItems[I])
+		{
+			// Found an empty slot in active items, set it to the new item
+			return SetActiveItem(I, Item);
+		}
+	}
 }
 
 void AGenericGaemPlayerState::InventoryClear()

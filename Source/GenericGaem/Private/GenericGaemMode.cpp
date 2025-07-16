@@ -91,7 +91,7 @@ void AGenericGaemMode::PostLogin(APlayerController* NewPlayer)
 	InitializePlayer(NewPlayer);
 	// FOR DEBUG
 	// after 30 seconds, set the players role to peasant
-	GetWorld()->GetTimerManager().SetTimer(_DebugHandler, this, &AGenericGaemMode::OnDebug, 5.0f, false);
+	// GetWorld()->GetTimerManager().SetTimer(_DebugHandler, this, &AGenericGaemMode::OnDebug, 5.0f, false);
 }
 
 // TODO: Maybe multi thread?
@@ -138,7 +138,6 @@ void AGenericGaemMode::OnDebug()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Debug: Setting first player as peasant"));
 	const auto NewLeader = Cast<AGenericGaemPlayerState>(GameState->PlayerArray[0].Get());
-	NewLeader->SetActiveItem(0, NewLeader->GetInventoryItem(0));
 	//NewLeader->SetMoney(TEXT("1000"));
 	//NewLeader->SetGameRole(ERole::Peasant); // Set them to peasant (replicated)
 	//NewLeader->SetHealth(19.82942f);
