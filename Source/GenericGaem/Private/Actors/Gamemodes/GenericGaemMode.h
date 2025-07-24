@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Engine/TimerHandle.h"
+#include "ItemTableRow.h"
 #include "GenericGaemMode.generated.h"
 
 /**
@@ -30,10 +31,6 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerDeath(class AGenericGaemPlayerState* PlayerState);
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GenericGaemMode")
-	TSubclassOf<class AMeleeWeaponItem> StarterWeapon;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death);
-	TSubclassOf<class ADeathObject> DeathObject;
 	FTimerHandle _DetermineNextLeaderTimerHandler;
 	FTimerHandle _DeathTimerHandler;
 	FTimerHandle _DebugHandler;

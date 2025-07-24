@@ -3,7 +3,9 @@
 
 #include "PeasantRole.h"
 
-UPeasantRole::UPeasantRole() : UBaseRole(UPeasantRole::RoleName, UPeasantRole::RoleDescription, UPeasantRole::RolePrice)
+const TArray<std::string_view> UPeasantRole::StarterItems = {};
+
+UPeasantRole::UPeasantRole() : UBaseRole(UPeasantRole::RoleName, UPeasantRole::RoleDescription, UPeasantRole::RolePrice, UPeasantRole::StarterItems)
 {
 }
 

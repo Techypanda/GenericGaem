@@ -23,7 +23,8 @@ public class GenericGaem : ModuleRules
             $"{prefix}/Structs",
             $"{prefix}/UI",
             $"{prefix}/Interfaces",
-            $"{prefix}/Tests"
+            $"{prefix}/Tests",
+            $"{prefix}/Data"
         ];
     }
     public GenericGaem(ReadOnlyTargetRules Target) : base(Target)

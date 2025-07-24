@@ -3,7 +3,9 @@
 
 #include "LeaderRole.h"
 
-ULeaderRole::ULeaderRole() : UBaseRole(ULeaderRole::RoleName, ULeaderRole::RoleDescription, ULeaderRole::RolePrice)
+const TArray<std::string_view> ULeaderRole::StarterItems = {};
+
+ULeaderRole::ULeaderRole() : UBaseRole(ULeaderRole::RoleName, ULeaderRole::RoleDescription, ULeaderRole::RolePrice, ULeaderRole::StarterItems)
 {
 }
 

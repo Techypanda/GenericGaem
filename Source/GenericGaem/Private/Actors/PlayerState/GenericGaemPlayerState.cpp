@@ -2,6 +2,7 @@
 
 
 #include "GenericGaemPlayerState.h"
+#include "GenericGaemState.h"
 #include "GenericGaemHUD.h"
 #include "GenericGaemMode.h"
 #include "Net/UnrealNetwork.h"
@@ -130,6 +131,17 @@ void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(ERole RoleToPurc
 	}
 	SetGameRole(RoleToPurchase);
 	SetMoney(FString::FromInt(PlayerMoney - Price));
+	const auto& PlayerItemsToSpawn = Cast<AGenericGaemMode>(GetWorld()->GetAuthGameMode())->GetGameState<AGenericGaemState>()->GetStarterItemsForRole(RoleToPurchase);
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	for (const auto& ItemClass : PlayerItemsToSpawn)
+	{
+		const auto& _SpawnedItem = GetWorld()->SpawnActor<ABaseItem>(
+			ItemClass,
+			SpawnParams
+		);
+		AddToInventory(_SpawnedItem);
+	}
 	GetWorld()->GetAuthGameMode<AGenericGaemMode>()->MovePlayerToSpawnPoint(this);
 	UE_LOG(LogTemp, Warning, TEXT("Role %hs purchased successfully for player_id: %d. Remaining money: %s"),
 		LocalRole->GetRoleName().data(), GetPlayerId(), *GetMoney());

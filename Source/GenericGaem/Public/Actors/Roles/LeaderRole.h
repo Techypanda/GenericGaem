@@ -17,6 +17,7 @@ public:
 	static constexpr std::string_view RoleName = "Leader";
 	static constexpr std::string_view RoleDescription = "Rule over people, probably corrupt, probably a nice guy, kill people?";
 	static constexpr std::string_view RolePrice = "99999999999999999"; // You should not be buying this role
+	static const TArray<std::string_view> StarterItems;
 	ULeaderRole();
 	const FColor GetRoleColor() const override;
 };

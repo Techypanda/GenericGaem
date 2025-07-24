@@ -3,11 +3,13 @@
 
 #include "BaseRole.h"
 
-UBaseRole::UBaseRole() : UBaseRole(BaseRoleName, BaseRoleDescription, BaseRolePrice)
+const TArray<std::string_view> UBaseRole::BaseStarterItems = {};
+
+UBaseRole::UBaseRole() : UBaseRole(BaseRoleName, BaseRoleDescription, BaseRolePrice, BaseStarterItems)
 {
 }
 
-UBaseRole::UBaseRole(const std::string_view InRoleName, const std::string_view InRoleDescription, const std::string_view InRolePrice) : _RoleName(InRoleName), _RoleDescription(InRoleDescription), _RolePrice(InRolePrice)
+UBaseRole::UBaseRole(const std::string_view InRoleName, const std::string_view InRoleDescription, const std::string_view InRolePrice, const TArray<std::string_view> InStarterItems) : _StarterItems(InStarterItems), _RoleName(InRoleName), _RoleDescription(InRoleDescription), _RolePrice(InRolePrice)
 {
 }
 
@@ -29,4 +31,9 @@ const std::string_view UBaseRole::GetRoleDescription() const
 const std::string_view UBaseRole::GetRolePrice() const
 {
 	return _RolePrice;
+}
+
+const TArray<std::string_view> UBaseRole::GetStarterItems() const
+{
+	return _StarterItems;
 }

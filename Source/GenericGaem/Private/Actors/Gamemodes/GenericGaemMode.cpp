@@ -12,6 +12,7 @@
 #include "GenericGaemDeadIslandSpawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "MeleeWeaponItem.h"
+#include "ItemTableRow.h"
 
 static constexpr float _DetermineNextLeaderTimerInterval = 2.0f;
 static constexpr std::string_view _StartingMoney = "251";
@@ -34,13 +35,6 @@ void AGenericGaemMode::InitializePlayer(APlayerController* NewPlayer)
 	PlayerState->SetLastTimeLeader(FDateTime::UtcNow());
 	PlayerState->SetMoney(FString(_StartingMoney.data()));
 	PlayerState->SetHealth(AGenericGaemPlayerState::MaxHealth);
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = PlayerState;
-	const auto& _StarterWeaponSpawned = GetWorld()->SpawnActor<AMeleeWeaponItem>(
-		StarterWeapon,
-		SpawnParams
-	);
-	PlayerState->AddToInventory(_StarterWeaponSpawned);
 	UE_LOG(LogTemp, Warning, TEXT("Assigned PlayerId: %d to player: %s, %s time joined"), PlayerState->GetPlayerId(), *NewPlayer->GetName(), *PlayerState->GetLastTimeLeaderAsDateTime().ToString());
 }
 
@@ -69,7 +63,7 @@ void AGenericGaemMode::ServerDeath_Implementation(AGenericGaemPlayerState* Playe
 	PlayerState->InventoryClear();
 	auto DeathLocation = _Player->GetActorLocation();
 	DeathLocation.Z -= 90.0f;
-	const auto Death = GetWorld()->SpawnActor<ADeathObject>(DeathObject, DeathLocation, _Player->GetActorRotation(), FActorSpawnParameters{});
+	const auto Death = GetWorld()->SpawnActor<ADeathObject>(GetGameState<AGenericGaemState>()->GetDeathObject(), DeathLocation, _Player->GetActorRotation(), FActorSpawnParameters{});
 	Death->MulticastSetDeath(RespawnTime, PlayerState->GetPlayerName());
 	Death->SetDeath(RespawnTime, PlayerState ->GetPlayerName());
 	PlayerState->SetTimeTillRespawn(RespawnTime);

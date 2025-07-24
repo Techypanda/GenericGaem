@@ -3,7 +3,9 @@
 
 #include "MonkeyRole.h"
 
-UMonkeyRole::UMonkeyRole() : UBaseRole(UMonkeyRole::RoleName, UMonkeyRole::RoleDescription, UMonkeyRole::RolePrice)
+const TArray<std::string_view> UMonkeyRole::StarterItems = {};
+
+UMonkeyRole::UMonkeyRole() : UBaseRole(UMonkeyRole::RoleName, UMonkeyRole::RoleDescription, UMonkeyRole::RolePrice, UMonkeyRole::StarterItems)
 {
 }
 

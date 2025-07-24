@@ -17,6 +17,7 @@ public:
 	static constexpr std::string_view RoleName = "Monkey";
 	static constexpr std::string_view RoleDescription = "kill human, eat banana, oo oo aaa aaa";
 	static constexpr std::string_view RolePrice = "0";
+	static const TArray<std::string_view> StarterItems;
 	UMonkeyRole();
 	const FColor GetRoleColor() const override;
 };

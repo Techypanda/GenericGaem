@@ -3,7 +3,9 @@
 
 #include "CitizenRole.h"
 
-UCitizenRole::UCitizenRole() : UBaseRole(UCitizenRole::RoleName, UCitizenRole::RoleDescription, UCitizenRole::RolePrice)
+const TArray<std::string_view> UCitizenRole::StarterItems = {};
+
+UCitizenRole::UCitizenRole() : UBaseRole(UCitizenRole::RoleName, UCitizenRole::RoleDescription, UCitizenRole::RolePrice, UCitizenRole::StarterItems)
 {
 }
 
