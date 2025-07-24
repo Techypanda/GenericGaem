@@ -11,6 +11,8 @@
 #include "EnhancedInputComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/TextRenderComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "IItem.h"
 #include <string>
 
@@ -20,7 +22,7 @@ static constexpr float RoleDisplayFontsize = 16.0f;
 static constexpr float HealthDisplayFontsize = 16.0f;
 
 // Sets default values
-AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true), bDisableMovement(false), bDisableLook(false), bBindedTextRender{false}
+AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true), bDisableMovement(false), bDisableLook(false), bBindedTextRender{ false }
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -183,20 +185,6 @@ void AGenericGaemCharacter::SelectItem9(const FInputActionInstance& Instance)
 	SelectItem(8);
 }
 
-void AGenericGaemCharacter::ServerDeath_Implementation()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Server Death called on %s"), *GetName());
-	GetPlayerState<AGenericGaemPlayerState>()->InventoryClear();
-	// TODO: Prevent Movement, ETC
-	auto DeathLocation = GetActorLocation();
-	DeathLocation.Z -= 90.0f;
-	const auto Death = GetWorld()->SpawnActor<ADeathObject>(DeathObject, DeathLocation, GetActorRotation(), FActorSpawnParameters{});
-	// TODO: Propagate to player
-	Death->MulticastSetDeath(10.0f, GetPlayerState<AGenericGaemPlayerState>()->GetPlayerName());
-	Death->SetDeath(10.0f, GetPlayerState<AGenericGaemPlayerState>()->GetPlayerName());
-	Destroy(); // the character is dead and needs to respawn
-}
-
 // Called every frame
 void AGenericGaemCharacter::Tick(float DeltaTime)
 {
@@ -247,6 +235,13 @@ void AGenericGaemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	Input->BindAction(LoadedMapping->SelectActiveActions[8], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem9);
 }
 
+void AGenericGaemCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGenericGaemCharacter, bDisableMovement);
+	DOREPLIFETIME(AGenericGaemCharacter, bDisableLook);
+}
+
 USpringArmComponent* AGenericGaemCharacter::GetCameraSpringArmComponent()
 {
 	return CameraSpringArmComponent;
@@ -289,6 +284,31 @@ void AGenericGaemCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	BindTextRenders();
+}
+
+void AGenericGaemCharacter::Death()
+{
+	EnableMovement(false);
+	GetMesh()->SetVisibility(false, true);
+	SetShowStatusDisplays(false);
+}
+
+void AGenericGaemCharacter::Revive()
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Revive called on client, but this should only be called on the server!"));
+		return;
+	}
+	SetFirstPerson();
+	EnableMovement(false);
+	ShowCursor(true);
+}
+
+void AGenericGaemCharacter::SetShowStatusDisplays(bool bShow)
+{
+	RoleDisplayComponent->SetVisibility(bShow, true);
+	HealthDisplayComponent->SetVisibility(bShow, true);
 }
 
 void AGenericGaemCharacter::BindTextRenders()

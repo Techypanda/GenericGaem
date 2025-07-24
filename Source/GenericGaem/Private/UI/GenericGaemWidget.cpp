@@ -25,6 +25,8 @@ void UGenericGaemWidget::InitializeWidget(UWorld* World)
 	PlayerState->OnRolePurchased().AddUObject(this, &UGenericGaemWidget::OnRolePurchased);
 	PlayerState->OnHealthChanged().AddUObject(this, &UGenericGaemWidget::OnHealthChanged);
 	PlayerState->OnSelectedActiveItemChanged().AddUObject(this, &UGenericGaemWidget::OnActiveItemSelectedChanged);
+	PlayerState->OnPlayerDeath().AddUObject(this, &UGenericGaemWidget::OnPlayerDeath);
+	PlayerState->OnPlayerRevive().AddUObject(this, &UGenericGaemWidget::OnPlayerRevive);
 	Player->OnEscapeMenu().AddUObject(this, &UGenericGaemWidget::OnEscapeMenu);
 }
 
@@ -48,6 +50,11 @@ void UGenericGaemWidget::PostLoad()
 	Super::PostLoad();
 }
 
+void UGenericGaemWidget::OnPlayerRevive_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Player revived in GenericGaemWidget"));
+}
+
 TArray<FRoleListItem> UGenericGaemWidget::GetRoleListItems() const
 {
 	TArray<FRoleListItem> RoleListItems{};
@@ -65,6 +72,11 @@ TArray<FRoleListItem> UGenericGaemWidget::GetRoleListItems() const
 		);
 	}
 	return RoleListItems;
+}
+
+void UGenericGaemWidget::OnPlayerDeath_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Player death in GenericGaemWidget"));
 }
 
 void UGenericGaemWidget::OnRolePurchased_Implementation()

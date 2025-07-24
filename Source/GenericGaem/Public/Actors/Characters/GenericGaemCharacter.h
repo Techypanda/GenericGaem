@@ -17,6 +17,7 @@ public:
 	bool bIsFirstPerson;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	AGenericGaemCharacter();
 	void SetFirstPerson();
 	void SetThirdPerson();
@@ -31,11 +32,10 @@ public:
 	void OnRep_PlayerState() override;
 	DECLARE_EVENT(FLayerViewModel, FEscapeMenuEvent)
 	FEscapeMenuEvent& OnEscapeMenu() { return _EscapeMenuEvent; }
-	UFUNCTION(Server, Reliable)
-	void ServerDeath();
+	UFUNCTION(BlueprintCallable)
+	void Death();
+	void Revive();
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death);
-	class TSubclassOf<ADeathObject> DeathObject;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
 	class UTextRenderComponent* RoleDisplayComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
@@ -54,8 +54,13 @@ protected:
 	TSoftObjectPtr<class UGenericGaemInputMapping> InputMapping;
 	virtual void BeginPlay() override;
 	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
+	void SetShowStatusDisplays(bool bShow);
 private:
-	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bDisableMovement, bDisableLook, bBindedTextRender;
+	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bBindedTextRender;;
+	UPROPERTY(Replicated)
+	bool bDisableMovement;
+	UPROPERTY(Replicated)
+	bool bDisableLook;
 	float RcMouseX, RcMouseY;
 	FEscapeMenuEvent _EscapeMenuEvent;
 	class UTextRenderComponent* CreateTextRenderComponent(const wchar_t* const Name, const float& ZOffset, const float& FontSize);

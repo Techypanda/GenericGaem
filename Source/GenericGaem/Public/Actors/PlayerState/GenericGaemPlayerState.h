@@ -23,7 +23,9 @@ public:
 	mutable FCriticalSection GameRoleLock;
 	static constexpr float MaxHealth = 100.0f;
 	AGenericGaemPlayerState();
+	void Tick(float DeltaTime) override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void Revive();
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/GameRole")
 	void SetGameRole(ERole NewRole);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/GameRole")
@@ -52,6 +54,10 @@ public:
 	FHealthChangedEvent& OnHealthChanged() { return _HealthChangedEvent; }
 	DECLARE_EVENT(FLayerViewModel, FInventoryChangedEvent)
 	FHealthChangedEvent& OnInventoryChanged() { return _HealthChangedEvent; }
+	DECLARE_EVENT(FLayerViewModel, FPlayerDeathEvent)
+	FPlayerDeathEvent& OnPlayerDeath() { return _PlayerDeathEvent; }
+	DECLARE_EVENT(FLayerViewModel, FPlayerReviveEvent)
+	FPlayerReviveEvent& OnPlayerRevive() { return _PlayerReviveEvent; }
 	UFUNCTION(Server, Reliable)
 	void ServerPurchaseRole(ERole RoleToPurchase);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
@@ -84,7 +90,15 @@ public:
 	void SetSelectedActiveItem(int Index);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Inventory")
 	int GetSelectedActiveItem();
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Death")
+	float GetTimeTillRespawn() const;
+	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Death")
+	void SetTimeTillRespawn(float InTime);
 protected:
+	UPROPERTY(Replicated)
+	float _TimeTillRespawn;
+	UPROPERTY(Replicated)
+	bool bIsDead;
 	// TStaticArray would work great here! - but... UE5 cant do UPROPERTY with it - https://stackoverflow.com/questions/77759308/unreal-engine-5-cant-find-tstaticarray
 	UPROPERTY(ReplicatedUsing = OnRep_Inventory)
 	TArray<class ABaseItem*> _Inventory;
@@ -92,6 +106,8 @@ protected:
 	TArray<class ABaseItem*> _ActiveItems;
 	UPROPERTY(Replicated)
 	int _SelectedActiveItem;
+	UFUNCTION(Client, Reliable)
+	void ClientRevive();
 	UFUNCTION()
 	void OnRep_Inventory();
 	void OnInventoryUpdate();
@@ -129,7 +145,11 @@ protected:
 	FHealthChangedEvent _HealthChangedEvent;
 	FInventoryChangedEvent _InventoryChangedEvent;
 	FSelectedActiveItemChanged _SelectedActiveItemChangedEvent;
+	FPlayerDeathEvent _PlayerDeathEvent;
+	FPlayerReviveEvent _PlayerReviveEvent;
 	// Unreal Engine seems to suggest storing a UObject pointer for interfaces... https://dev.epicgames.com/documentation/en-us/unreal-engine/interfaces-in-unreal-engine#safelystoreobjectandinterfacepointers
 	UPROPERTY(Replicated)
 	TObjectPtr<class ABaseItem> _EquippedItem;
+private:
+	static TArray<class ABaseItem*> BuildItemsArrayOfSize(int Size);
 };

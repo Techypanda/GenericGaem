@@ -13,12 +13,17 @@
 
 static constexpr int ActiveItemsCount = 9;
 
-AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}, _EquippedItem{ nullptr }, _ActiveItems{}, _SelectedActiveItem{NoItemSelected}
+AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Health{ MaxHealth }, GameRoleLock{}, _EquippedItem{ nullptr }, _ActiveItems{BuildItemsArrayOfSize(ActiveItemsCount)}, _SelectedActiveItem{NoItemSelected}, bIsDead{false}, _TimeTillRespawn{0.0f}
 {
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
-	for (int I = 0; I < ActiveItemsCount; I++)
-	{
-		_ActiveItems.Add(nullptr); // we want to make sure theres always 9 items
+}
+
+void AGenericGaemPlayerState::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (bIsDead) {
+		_TimeTillRespawn = std::max(_TimeTillRespawn - DeltaTime, 0.0f);
 	}
 }
 
@@ -29,6 +34,21 @@ void AGenericGaemPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(AGenericGaemPlayerState, _LastLeaderDateTimeString);
 	DOREPLIFETIME(AGenericGaemPlayerState, bIsInvulnerable);
 	DOREPLIFETIME(AGenericGaemPlayerState, _EquippedItem);
+	DOREPLIFETIME(AGenericGaemPlayerState, bIsDead);
+}
+
+void AGenericGaemPlayerState::Revive()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Reviving player_id: %d"), GetPlayerId());
+	_Health = MaxHealth;
+	_EquippedItem = nullptr;
+	_ActiveItems = BuildItemsArrayOfSize(ActiveItemsCount);
+	_SelectedActiveItem = NoItemSelected;
+	_Inventory = TArray<ABaseItem*>{};
+	_TimeTillRespawn = 0.0f;
+	bIsDead = false;
+	SetGameRole(ERole::None);
+	ClientRevive();
 }
 
 void AGenericGaemPlayerState::SetGameRole(ERole NewRole)
@@ -127,9 +147,9 @@ void AGenericGaemPlayerState::SetHealth(float NewHealth)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Setting health for player_id: %d to %.2f"), GetPlayerId(), NewHealth);
 		NewHealth = std::clamp(NewHealth, 0.0f, MaxHealth);
-		if (NewHealth <= 0.0f) {
-			const auto _Player = GetPawn<AGenericGaemCharacter>();
-			_Player->ServerDeath();
+		if (NewHealth <= 0.0f && !bIsDead) {
+			bIsDead = true;
+			GetWorld()->GetAuthGameMode<AGenericGaemMode>()->ServerDeath(this);
 		}
 		_Health = NewHealth;
 		OnHealthUpdate();
@@ -238,6 +258,11 @@ void AGenericGaemPlayerState::InventoryClear()
 		const auto& ActorToDelete = _Inventory.Pop();
 		ActorToDelete->Destroy();
 	}
+	if (_EquippedItem && _EquippedItem.Get() && !_EquippedItem.Get()->IsActorBeingDestroyed()) {
+		_EquippedItem.Get()->Destroy();
+	}
+	_EquippedItem = nullptr;
+	OnInventoryUpdate();
 }
 
 bool AGenericGaemPlayerState::HasItemInInventory(TScriptInterface<class IItem> ItemToEquip)
@@ -298,6 +323,27 @@ int AGenericGaemPlayerState::GetSelectedActiveItem()
 	return _SelectedActiveItem;
 }
 
+float AGenericGaemPlayerState::GetTimeTillRespawn() const
+{
+	return _TimeTillRespawn;
+}
+
+void AGenericGaemPlayerState::SetTimeTillRespawn(float InTime)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		// doesn't really matter since its UI, but may aswell
+		UE_LOG(LogTemp, Warning, TEXT("SetTimeTillRespawn called on client, but this should only be called on the server!"));
+		return;
+	}
+	_TimeTillRespawn = InTime;
+}
+
+void AGenericGaemPlayerState::ClientRevive_Implementation ()
+{
+	OnPlayerRevive().Broadcast();
+}
+
 void AGenericGaemPlayerState::OnRep_Inventory()
 {
 	OnInventoryUpdate();
@@ -342,6 +388,10 @@ void AGenericGaemPlayerState::OnHealthUpdate()
 	}
 	else
 	{
+	}
+	if (_Health <= 0.0f)
+	{
+		OnPlayerDeath().Broadcast();
 	}
 	_HealthChangedEvent.Broadcast();
 }
@@ -397,4 +447,14 @@ void AGenericGaemPlayerState::OnMoneyUpdate()
 		UE_LOG(LogTemp, Warning, TEXT("Client?: Money replicated to %s for player_id: %d"), *_Money, GetPlayerId());
 	}
 	_MoneyChangedEvent.Broadcast();
+}
+
+TArray<ABaseItem*> AGenericGaemPlayerState::BuildItemsArrayOfSize(int Size)
+{
+	TArray<ABaseItem*> _ItemsArr;
+	for (int I = 0; I < Size; I++)
+	{
+		_ItemsArr.Add(nullptr); // we want to make sure theres always 9 items
+	}
+	return _ItemsArr;
 }

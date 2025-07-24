@@ -30,6 +30,10 @@ protected:
 	void OnEscapeMenu();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
 	void OnActiveItemSelectedChanged();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
+	void OnPlayerDeath();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
+	void OnPlayerRevive();
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem")
 	TArray<struct FRoleListItem> GetRoleListItems() const;
 	FTimerHandle _HackyTimerHandle;

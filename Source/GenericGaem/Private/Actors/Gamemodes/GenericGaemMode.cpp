@@ -9,6 +9,7 @@
 #include "GameFramework/GameState.h"
 #include "GenericGaemCharacter.h"
 #include "GenericGaemRoleSpawnpoint.h"
+#include "GenericGaemDeadIslandSpawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "MeleeWeaponItem.h"
 
@@ -49,12 +50,33 @@ void AGenericGaemMode::InitGameState()
 	UE_LOG(LogTemp, Warning, TEXT("AGenericGaemMode::InitGameState called"));
 	// We need a leader, poll every 2 seconds till we get one, then it will clear itself
 	GetWorld()->GetTimerManager().SetTimer(_DetermineNextLeaderTimerHandler, this, &AGenericGaemMode::DetermineNextLeader, _DetermineNextLeaderTimerInterval, true);
+	GetWorld()->GetTimerManager().SetTimer(_DeathTimerHandler, this, &AGenericGaemMode::OnDeathCheck, 1.0f, true);
 }
 
 void AGenericGaemMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	GetWorld()->GetTimerManager().ClearTimer(_DetermineNextLeaderTimerHandler);
+	GetWorld()->GetTimerManager().ClearTimer(_DeathTimerHandler);
+}
+
+void AGenericGaemMode::ServerDeath_Implementation(AGenericGaemPlayerState* PlayerState)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Server Death called on %s"), *GetName());
+	const auto& RespawnTime = 10.0f;
+	const auto& RespawnTimePoint = FDateTime::Now().ToUnixTimestamp() + static_cast<int64>(RespawnTime);
+	const auto& _Player = Cast<AGenericGaemCharacter>(PlayerState->GetPawn());
+	PlayerState->InventoryClear();
+	auto DeathLocation = _Player->GetActorLocation();
+	DeathLocation.Z -= 90.0f;
+	const auto Death = GetWorld()->SpawnActor<ADeathObject>(DeathObject, DeathLocation, _Player->GetActorRotation(), FActorSpawnParameters{});
+	Death->MulticastSetDeath(RespawnTime, PlayerState->GetPlayerName());
+	Death->SetDeath(RespawnTime, PlayerState ->GetPlayerName());
+	PlayerState->SetTimeTillRespawn(RespawnTime);
+	_Player->Death();
+	_Player->SetActorLocation(DeadIslandSpawnActor->GetActorLocation());
+	_DeadPlayerStates[RespawnTimePoint] = PlayerState;
+	UE_LOG(LogTemp, Warning, TEXT("Player %s has died, will respawn at (Unix %lld) time"), *PlayerState->GetPlayerName(), RespawnTimePoint);
 }
 
 void AGenericGaemMode::SetPlayerAsLeader(AGenericGaemPlayerState* NewLeader)
@@ -82,6 +104,8 @@ void AGenericGaemMode::LoadSpawnPoints()
 			// TODO: Loop and try again, this should never happen though
 		}
 	}
+	const auto& DeadIslandActor = UGameplayStatics::GetActorOfClass(GetWorld(), AGenericGaemDeadIslandSpawn::StaticClass());
+	DeadIslandSpawnActor = Cast<AGenericGaemDeadIslandSpawn>(DeadIslandActor);
 }
 
 void AGenericGaemMode::PostLogin(APlayerController* NewPlayer)
@@ -132,6 +156,41 @@ void AGenericGaemMode::DetermineNextLeader()
 	// Leader role is determined, clear timer
 	GetWorld()->GetTimerManager().ClearTimer(_DetermineNextLeaderTimerHandler);
 	// TODO: We need a timer setup here to check the leader is still alive; if your dead then you lose your leader role
+}
+
+void AGenericGaemMode::OnDeathCheck()
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnDeathCheck called on client, ignoring"));
+		return;
+	}
+	const auto NowUnix = FDateTime::Now().ToUnixTimestamp();
+	UE_LOG(LogTemp, Warning, TEXT("OnDeathCheck called at %lld unix (Dead Players Waiting: %d)"), NowUnix, _DeadPlayerStates.size());
+	auto Iterator = _DeadPlayerStates.lower_bound(NowUnix);
+	for (;;)
+	{
+		bool bIsBeginning = Iterator == _DeadPlayerStates.begin();
+		bool bIsEnd = Iterator == _DeadPlayerStates.end();
+		if ((bIsBeginning && bIsEnd) || (!bIsEnd && Iterator->first > NowUnix))
+		{
+			break;
+		}
+		if (bIsEnd)
+		{
+			Iterator--;
+			continue;
+		}
+		const auto& _PlayerState = Iterator->second;
+		UE_LOG(LogTemp, Warning, TEXT("Reviving player (%s) with Epoch: %lld"), *_PlayerState->GetPlayerName(), Iterator->first);
+		Cast<AGenericGaemCharacter>(_PlayerState->GetPawn())->Revive(); // Reset the pawn
+		_PlayerState->Revive(); // Reset The Playerstate
+		Iterator = _DeadPlayerStates.erase(Iterator);
+		if (bIsBeginning)
+		{
+			break;
+		}
+	}
 }
 
 void AGenericGaemMode::OnDebug()
