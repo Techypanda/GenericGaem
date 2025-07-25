@@ -22,9 +22,9 @@ class GENERICGAEM_API IRole
 {
 	GENERATED_BODY()
 public:
-	virtual const std::string_view GetRoleName() const = 0;
+	virtual const FString GetRoleName() const = 0;
 	virtual const FColor GetRoleColor() const = 0;
-	virtual const std::string_view GetRoleDescription() const = 0;
-	virtual const std::string_view GetRolePrice() const = 0;
-	virtual const TArray<std::string_view> GetStarterItems() const = 0;
+	virtual const FString GetRoleDescription() const = 0;
+	virtual const FString GetRolePrice() const = 0;
+	virtual const TArray<TSubclassOf<class ABaseItem>> GetStarterItems() const = 0;
 };

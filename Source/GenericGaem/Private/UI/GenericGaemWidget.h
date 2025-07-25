@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <optional>
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "GenericGaemListItemWidget.h"
@@ -37,4 +38,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem")
 	TArray<struct FRoleListItem> GetRoleListItems() const;
 	FTimerHandle _HackyTimerHandle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GenericGaemMode")
+	UDataTable* RoleTable;
 };

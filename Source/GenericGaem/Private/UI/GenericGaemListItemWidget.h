@@ -15,5 +15,7 @@ class UGenericGaemListItemWidget : public UUserWidget
 	GENERATED_BODY()
 protected:
 	UFUNCTION(BlueprintCallable)
-	bool SelectRole(int32 ERoleVal);
+	bool SelectRole(FString RoleName);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GenericGaem/Role")
+	UDataTable* RoleTable;
 };

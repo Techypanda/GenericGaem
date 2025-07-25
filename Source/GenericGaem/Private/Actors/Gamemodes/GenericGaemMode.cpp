@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MeleeWeaponItem.h"
 #include "ItemTableRow.h"
+#include "BaseRole.h"
 
 static constexpr float _DetermineNextLeaderTimerInterval = 2.0f;
 static constexpr std::string_view _StartingMoney = "251";
@@ -31,7 +32,7 @@ void AGenericGaemMode::InitializePlayer(APlayerController* NewPlayer)
 		GameSession->KickPlayer(NewPlayer, KickReason);
 		return;
 	}
-	PlayerState->SetGameRole(ERole::None);
+	PlayerState->SetGameRole(UBaseRole::BaseRoleName);
 	PlayerState->SetLastTimeLeader(FDateTime::UtcNow());
 	PlayerState->SetMoney(FString(_StartingMoney.data()));
 	PlayerState->SetHealth(AGenericGaemPlayerState::MaxHealth);
@@ -76,7 +77,7 @@ void AGenericGaemMode::ServerDeath_Implementation(AGenericGaemPlayerState* Playe
 void AGenericGaemMode::SetPlayerAsLeader(AGenericGaemPlayerState* NewLeader)
 {
 	NewLeader->SetLastTimeLeader(FDateTime::Now()); // Update the time they were last leader (replicated)
-	NewLeader->SetGameRole(ERole::Leader); // Set them to leader (replicated)
+	NewLeader->SetGameRole(UBaseRole::LeaderRoleName); // Set them to leader (replicated)
 	Cast<AGenericGaemState>(GameState)->SetLeader(NewLeader->GetPlayerId());
 	MovePlayerToSpawnPoint(NewLeader); // Move the player to the spawn point for the leader
 }
@@ -90,13 +91,6 @@ void AGenericGaemMode::LoadSpawnPoints()
 		UE_LOG(LogTemp, Warning, TEXT("Found spawn point: %s"), *SpawnPointAsActor->GetName());
 		const auto& SpawnPoint = Cast<AGenericGaemRoleSpawnpoint>(SpawnPointAsActor);
 		_RoleSpawnPoints[SpawnPoint->RoleToSpawn] = SpawnPoint;
-	}
-	for (int I = 0; I <= static_cast<int>(ERole::Leader); I++)
-	{
-		if (!_RoleSpawnPoints[static_cast<ERole>(I)])
-		{
-			// TODO: Loop and try again, this should never happen though
-		}
 	}
 	const auto& DeadIslandActor = UGameplayStatics::GetActorOfClass(GetWorld(), AGenericGaemDeadIslandSpawn::StaticClass());
 	DeadIslandSpawnActor = Cast<AGenericGaemDeadIslandSpawn>(DeadIslandActor);
@@ -131,8 +125,8 @@ void AGenericGaemMode::DetermineNextLeader()
 		const auto Pstate = Cast<AGenericGaemPlayerState>(PlayerState);
 		if (!Pstate) return false;
 		const auto GameRole = Pstate->GetGameRole();
-		return GameRole != ERole::None && GameRole != ERole::Leader;
-	});
+		return GameRole != UBaseRole::BaseRoleName && GameRole != UBaseRole::LeaderRoleName;
+		});
 	if (CharactersWhoHavePickedARole.Num() < 1)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("There is currently no players with a role"));
@@ -210,10 +204,10 @@ void AGenericGaemMode::MovePlayerToSpawnPoint(AGenericGaemPlayerState* PlayerSta
 		UE_LOG(LogTemp, Warning, TEXT("MovePlayerToSpawnPoint called on client, ignoring"));
 		return;
 	}
-	const auto& RoleToSpawn = PlayerState->GetGameRole();
-	const auto& SpawnLocation = _RoleSpawnPoints[RoleToSpawn]->GetSpawnLocation();
-	const auto& SpawnRotation = _RoleSpawnPoints[RoleToSpawn]->GetSpawnRotation();
-	UE_LOG(LogTemp, Warning, TEXT("Moving player %s to spawn point for role %d at location %s with rotation %s"),
+	 const auto& RoleToSpawn = ERoleHelper::StringToERoleName[PlayerState->GetGameRole()];
+	 const auto& SpawnLocation = _RoleSpawnPoints[RoleToSpawn]->GetSpawnLocation();
+	 const auto& SpawnRotation = _RoleSpawnPoints[RoleToSpawn]->GetSpawnRotation();
+	 UE_LOG(LogTemp, Warning, TEXT("Moving player %s to spawn point for role %d at location %s with rotation %s"),
 		*PlayerState->GetPlayerName(), static_cast<int32>(RoleToSpawn), *SpawnLocation.ToString(), *SpawnRotation.ToString());
 	const auto& _Controller = Cast<APlayerController>(PlayerState->GetOwner());
 	const auto& _Character = Cast<AGenericGaemCharacter>(_Controller->GetCharacter());

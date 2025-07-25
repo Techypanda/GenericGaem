@@ -3,10 +3,10 @@
 #pragma once
 #include <map>
 #include <unordered_map>
-#include "ERole.h"
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Engine/TimerHandle.h"
+#include "RoleName.h"
 #include "ItemTableRow.h"
 #include "GenericGaemMode.generated.h"
 
@@ -38,7 +38,7 @@ private:
 	class AGenericGaemDeadIslandSpawn* DeadIslandSpawnActor;
 	// Need a RB Tree to get all dead players at a certain time
 	std::map<int64, class AGenericGaemPlayerState*> _DeadPlayerStates;
-	std::unordered_map<ERole, class AGenericGaemRoleSpawnpoint*> _RoleSpawnPoints;
+	std::unordered_map<ERoleName, class AGenericGaemRoleSpawnpoint*> _RoleSpawnPoints;
 	void SetPlayerAsLeader(class AGenericGaemPlayerState* NewLeader);
 	void LoadSpawnPoints();
 };

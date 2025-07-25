@@ -15,6 +15,4 @@ struct GENERICGAEM_API FRoleListItem
 	FString Price;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleListItemProperties")
 	FString Description;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleListItemProperties")
-	int32 ERoleVal;
 };

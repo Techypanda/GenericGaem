@@ -5,8 +5,8 @@
 #include <chrono>
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
-#include "ERole.h"
 #include "Math/Color.h"
+#include "RoleTableRow.h"
 #include "GenericGaemPlayerState.generated.h"
 
 /**
@@ -27,11 +27,9 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void Revive();
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/GameRole")
-	void SetGameRole(ERole NewRole);
+	void SetGameRole(FString NewRole);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/GameRole")
-	ERole GetGameRole() const;
-	UFUNCTION(BlueprintCallable, Category = "GenericGaem/GameRole")
-	FString GetGameRoleAsString() const;
+	FString GetGameRole() const;
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/GameRole")
 	FColor GetGameRoleColor() const;
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
@@ -59,7 +57,7 @@ public:
 	DECLARE_EVENT(FLayerViewModel, FPlayerReviveEvent)
 	FPlayerReviveEvent& OnPlayerRevive() { return _PlayerReviveEvent; }
 	UFUNCTION(Server, Reliable)
-	void ServerPurchaseRole(ERole RoleToPurchase);
+	void ServerPurchaseRole(const FString& RoleToPurchase);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
 	void SetHealth(float NewHealth);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
@@ -111,6 +109,8 @@ protected:
 	UFUNCTION()
 	void OnRep_Inventory();
 	void OnInventoryUpdate();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GenericGaem/Role")
+	UDataTable* RoleTable;
 	UPROPERTY(ReplicatedUsing = OnRep_Invulnerability)
 	bool bIsInvulnerable;
 	UPROPERTY(ReplicatedUsing = OnRep_Health)
@@ -122,7 +122,7 @@ protected:
 	void OnInvulnerabilityUpdate();
 	void OnHealthUpdate();
 	UPROPERTY(ReplicatedUsing = OnRep_GameRole)
-	ERole _AssignedRole;
+	FString _AssignedRole;
 	UFUNCTION()
 	void OnRep_GameRole();
 	void OnGameRoleUpdate();

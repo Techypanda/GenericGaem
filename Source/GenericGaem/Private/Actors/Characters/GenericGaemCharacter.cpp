@@ -14,6 +14,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "IItem.h"
+#include "BaseRole.h"
+#include "DataRole.h"
 #include <string>
 
 static constexpr float RoleDisplayZOffset = 100.0f;
@@ -95,12 +97,12 @@ void AGenericGaemCharacter::OnPlayerStateChanged(APlayerState* NewPlayerState, A
 	}
 }
 
-void AGenericGaemCharacter::SetVisibilityBasedOffRole(ERole NewRole)
+void AGenericGaemCharacter::SetVisibilityBasedOffRole(FString NewRole)
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		const auto& SceneComponent = GetRootComponent();
-		if (NewRole == ERole::None)
+		if (NewRole == UBaseRole::BaseRoleName)
 		{
 			// No Role Yet, Hide the character and set invulnerable for everyone
 			SceneComponent->SetVisibility(false, true);
@@ -112,12 +114,12 @@ void AGenericGaemCharacter::SetVisibilityBasedOffRole(ERole NewRole)
 	}
 }
 
-void AGenericGaemCharacter::SetVulnerabilityBasedOffRole(ERole NewRole)
+void AGenericGaemCharacter::SetVulnerabilityBasedOffRole(FString NewRole)
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		const auto& _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
-		if (NewRole == ERole::None)
+		if (NewRole == UBaseRole::BaseRoleName)
 		{
 			_PlayerState->SetInvulnerability(true);
 		}
@@ -434,8 +436,8 @@ void AGenericGaemCharacter::Jump(const FInputActionInstance& Instance)
 void AGenericGaemCharacter::OnRoleChange()
 {
 	const auto& _PlayerState = GetPlayerState<AGenericGaemPlayerState>();
-	const auto& _Role = ERoleHelper::ERoleToRole(_PlayerState->GetGameRole());
-	RoleDisplayComponent->SetText(FText::FromString(_Role->GetRoleName().data()));
+	const auto& _Role = FRoleTableRow::GetDataRole(_PlayerState->GetGameRole(), RoleTable);
+	RoleDisplayComponent->SetText(FText::FromString(_Role->GetRoleName()));
 	RoleDisplayComponent->SetTextRenderColor(_Role->GetRoleColor());
 	SetVulnerabilityBasedOffRole(_PlayerState->GetGameRole());
 	SetVisibilityBasedOffRole(_PlayerState->GetGameRole());

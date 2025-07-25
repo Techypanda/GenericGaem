@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ERole.h"
 #include "GameFramework/GameStateBase.h"
 #include "GenericGaemState.generated.h"
 
@@ -15,9 +14,10 @@ class GENERICGAEM_API AGenericGaemState : public AGameStateBase
 {
 	GENERATED_BODY()
 public:
+	void BeginPlay() override;
 	void SetLeader(int32 InLeaderId);
 	const TSubclassOf<class ADeathObject> GetDeathObject() const;
-	const TArray<TSubclassOf<class ABaseItem>> GetStarterItemsForRole(ERole Role) const;
+	// const TArray<TSubclassOf<class ABaseItem>> GetStarterItemsForRole(ERole Role) const;
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Leader)
 	int32 LeaderId;

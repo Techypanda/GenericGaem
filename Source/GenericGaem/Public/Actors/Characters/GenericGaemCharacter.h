@@ -5,7 +5,6 @@
 #include "GameFramework/Character.h"
 #include "IRole.h"
 #include "DeathObject.h"
-#include "ERole.h"
 #include "GenericGaemCharacter.generated.h"
 
 UCLASS()
@@ -38,6 +37,8 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
 	class UTextRenderComponent* RoleDisplayComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Role);
+	class UDataTable* RoleTable;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = TextDisplay);
 	class UTextRenderComponent* HealthDisplayComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera);
@@ -77,8 +78,8 @@ private:
 	void Swim(const FInputActionInstance& Instance);
 	void UseAction(const FInputActionInstance& Instance);
 	void PossessedBy(AController* NewController) override;
-	void SetVisibilityBasedOffRole(ERole NewRole);
-	void SetVulnerabilityBasedOffRole(ERole NewRole);
+	void SetVisibilityBasedOffRole(FString NewRole);
+	void SetVulnerabilityBasedOffRole(FString NewRole);
 	// Ugly to cleanup
 	void SelectItem(int Idx);
 	void SelectItem1(const FInputActionInstance& Instance);

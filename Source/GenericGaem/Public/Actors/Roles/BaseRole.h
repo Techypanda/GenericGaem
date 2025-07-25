@@ -13,19 +13,20 @@ UCLASS()
 class GENERICGAEM_API UBaseRole : public UObject, public IRole
 {
 	GENERATED_BODY()
-private:
-	std::string_view _RoleName, _RoleDescription, _RolePrice;
-	TArray<std::string_view> _StarterItems;
+protected:
+	FString _RoleName, _RoleDescription, _RolePrice;
+	TArray<TSubclassOf<class ABaseItem>> _StarterItems;
 public:
-	static constexpr std::string_view BaseRoleName = "None";
-	static constexpr std::string_view BaseRoleDescription = "No Role Selected";
-	static constexpr std::string_view BaseRolePrice = "0";
-	static const TArray<std::string_view> BaseStarterItems;
+	static FString BaseRoleName;
+	static FString BaseRoleDescription;
+	static FString BaseRolePrice;
+	static FString LeaderRoleName;
+	static const TArray<TSubclassOf<class ABaseItem>> BaseStarterItems;
 	UBaseRole();
-	UBaseRole(const std::string_view InRoleName, const std::string_view InRoleDescription, const std::string_view InRolePrice, const TArray<std::string_view> InStarterItems);
+	UBaseRole(const FString InRoleName, const FString InRoleDescription, const FString InRolePrice, const TArray<TSubclassOf<class ABaseItem>> InStarterItems);
 	virtual const FColor GetRoleColor() const override;
-	virtual const std::string_view GetRoleName() const override;
-	virtual const std::string_view GetRoleDescription() const override;
-	virtual const std::string_view GetRolePrice() const override;
-	virtual const TArray<std::string_view> GetStarterItems() const override;
+	virtual const FString GetRoleName() const override;
+	virtual const FString GetRoleDescription() const override;
+	virtual const FString GetRolePrice() const override;
+	virtual const TArray<TSubclassOf<class ABaseItem>> GetStarterItems() const override;
 };

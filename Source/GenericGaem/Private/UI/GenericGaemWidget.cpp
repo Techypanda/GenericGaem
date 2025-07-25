@@ -5,6 +5,8 @@
 #include "GenericGaemPlayerState.h"
 #include "GenericGaemCharacter.h"
 #include "GenericGaemStructures.h"
+#include "RoleTableRow.h"
+#include "DataRole.h"
 #include "GameFramework/PlayerController.h"
 
 void UGenericGaemWidget::InitializeWidget(UWorld* World)
@@ -58,16 +60,14 @@ void UGenericGaemWidget::OnPlayerRevive_Implementation()
 TArray<FRoleListItem> UGenericGaemWidget::GetRoleListItems() const
 {
 	TArray<FRoleListItem> RoleListItems{};
-	const auto Roles = ERoleHelper::GetAllRoles();
-	for (int I = 0; I < Roles.size(); I++)
+	const auto& Roles = FRoleTableRow::GetAllRoles(RoleTable);
+	for (const auto& Role : Roles)
 	{
-		const auto& RoleVal = Roles[I];
 		RoleListItems.Push(
 			FRoleListItem{
-				FString(RoleVal->GetRoleName().data()),
-				FString(RoleVal->GetRolePrice().data()),
-				FString(RoleVal->GetRoleDescription().data()),
-				I
+				Role->GetRoleName(),
+				Role->GetRolePrice(),
+				Role->GetRoleDescription()
 			}
 		);
 	}

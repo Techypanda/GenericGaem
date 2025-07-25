@@ -8,6 +8,8 @@
 #include "Net/UnrealNetwork.h"
 #include "GenericGaemCharacter.h"
 #include "IItem.h"
+#include "RoleTableRow.h"
+#include "DataRole.h"
 #include "BaseItem.h"
 #include "Engine/Engine.h"
 #include "Engine/ActorChannel.h"
@@ -48,34 +50,29 @@ void AGenericGaemPlayerState::Revive()
 	_Inventory = TArray<ABaseItem*>{};
 	_TimeTillRespawn = 0.0f;
 	bIsDead = false;
-	SetGameRole(ERole::None);
+	SetGameRole(UBaseRole::BaseRoleName);
 	ClientRevive();
 }
 
-void AGenericGaemPlayerState::SetGameRole(ERole NewRole)
+void AGenericGaemPlayerState::SetGameRole(FString NewRole)
 {
 	FScopeLock Lock(&GameRoleLock);
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Setting game role to %d for player_id: %d"), static_cast<int32>(NewRole), GetPlayerId());
+		UE_LOG(LogTemp, Warning, TEXT("Setting game role to %s for player_id: %d"), *NewRole, GetPlayerId());
 		_AssignedRole = NewRole;
 		OnGameRoleUpdate();
 	}
 }
 
-ERole AGenericGaemPlayerState::GetGameRole() const
+FString AGenericGaemPlayerState::GetGameRole() const
 {
 	return _AssignedRole;
 }
 
-FString AGenericGaemPlayerState::GetGameRoleAsString() const
-{
-	return ERoleHelper::ERoleToRole(GetGameRole())->GetRoleName().data();
-}
-
 FColor AGenericGaemPlayerState::GetGameRoleColor() const
 {
-	return ERoleHelper::ERoleToRole(GetGameRole())->GetRoleColor();
+	return FRoleTableRow::GetDataRole(_AssignedRole, RoleTable)->GetRoleColor();
 }
 
 void AGenericGaemPlayerState::SetLastTimeLeader(FDateTime NewDateTime)
@@ -108,30 +105,24 @@ FString AGenericGaemPlayerState::GetMoney() const
 	return _Money;
 }
 
-void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(ERole RoleToPurchase)
+void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(const FString& RoleToPurchase)
 {
 	if (GetLocalRole() != ROLE_Authority)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PurchaseRole called on client, but this should only be called on the server!"));
 		return;
 	}
-	const auto LocalRole = ERoleHelper::ERoleToRole(RoleToPurchase);
-	if (!LocalRole)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Invalid role requested for purchase: %d"), static_cast<int32>(RoleToPurchase));
-		return;
-	}
-	const auto Price = FCString::Atoi(*FString(LocalRole->GetRolePrice().data()));
+	const auto LocalRole = FRoleTableRow::GetDataRole(RoleToPurchase, RoleTable);
+	const auto Price = FCString::Atoi(*LocalRole->GetRolePrice());
 	const auto PlayerMoney = FCString::Atoi(*GetMoney());
 	if (PlayerMoney < Price)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Not enough money to purchase role %hs. Required: %d, Available: %d"),
-			LocalRole->GetRoleName().data(), Price, PlayerMoney);
+		UE_LOG(LogTemp, Warning, TEXT("Not enough money to purchase role %s. Required: %d, Available: %d"), *RoleToPurchase, Price, PlayerMoney);
 		return;
 	}
 	SetGameRole(RoleToPurchase);
 	SetMoney(FString::FromInt(PlayerMoney - Price));
-	const auto& PlayerItemsToSpawn = Cast<AGenericGaemMode>(GetWorld()->GetAuthGameMode())->GetGameState<AGenericGaemState>()->GetStarterItemsForRole(RoleToPurchase);
+	const auto& PlayerItemsToSpawn = LocalRole->GetStarterItems();
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 	for (const auto& ItemClass : PlayerItemsToSpawn)
@@ -143,8 +134,7 @@ void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(ERole RoleToPurc
 		AddToInventory(_SpawnedItem);
 	}
 	GetWorld()->GetAuthGameMode<AGenericGaemMode>()->MovePlayerToSpawnPoint(this);
-	UE_LOG(LogTemp, Warning, TEXT("Role %hs purchased successfully for player_id: %d. Remaining money: %s"),
-		LocalRole->GetRoleName().data(), GetPlayerId(), *GetMoney());
+	UE_LOG(LogTemp, Warning, TEXT("Role %s purchased successfully for player_id: %d. Remaining money: %s"), *LocalRole->GetRoleName(), GetPlayerId(), *GetMoney());
 }
 
 void AGenericGaemPlayerState::SetHealth(float NewHealth)
@@ -415,14 +405,6 @@ void AGenericGaemPlayerState::OnRep_GameRole()
 
 void AGenericGaemPlayerState::OnGameRoleUpdate()
 {
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Server: Game role updated to %d for player_id: %d"), static_cast<int32>(_AssignedRole), GetPlayerId());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Client?: Game role replicated to %d for player_id: %d"), static_cast<int32>(_AssignedRole), GetPlayerId());
-	}
 	_RoleChangedEvent.Broadcast();
 }
 

@@ -3,6 +3,8 @@
 #include <string>
 #include "DeathObject.h"
 #include "StarterItemsTableRow.h"
+#include "DataRole.h"
+#include "RoleTableRow.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
 
@@ -33,6 +35,11 @@ void AGenericGaemState::OnRep_Leader()
 	OnLeaderUpdate();
 }
 
+void AGenericGaemState::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void AGenericGaemState::SetLeader(int32 InLeaderId)
 {
 	if (GetLocalRole() == ROLE_Authority)
@@ -45,17 +52,4 @@ void AGenericGaemState::SetLeader(int32 InLeaderId)
 const TSubclassOf<ADeathObject> AGenericGaemState::GetDeathObject() const
 {
 	return DeathObject;
-}
-
-const TArray<TSubclassOf<class ABaseItem>> AGenericGaemState::GetStarterItemsForRole(ERole _Role) const
-{
-	auto _RoleName = std::string(ERoleHelper::ERoleToRole(_Role)->GetRoleName());
-	std::transform(_RoleName.begin(), _RoleName.end(), _RoleName.begin(), [](unsigned char C) { return std::tolower(C); });
-	const auto& Row = RoleStarterItems->FindRow<FStarterItemsTableRow>(FName(_RoleName.c_str()), TEXT("GetStarterItemsForRole"), true);
-	if (!Row)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Role %s not found in RoleStarterItems DataTable!"), *FString(_RoleName.c_str()));
-		return TArray<TSubclassOf<class ABaseItem>>();
-	}
-	return Row->StartingItems;
 }
