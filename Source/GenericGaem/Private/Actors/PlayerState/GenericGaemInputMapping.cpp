@@ -27,6 +27,7 @@ void UGenericGaemInputMapping::Initialize()
 	{
 		SelectActiveActions.Add(CreateSelectActiveItemAction(I));
 	}
+	CreateRagdollAction();
 }
 
 void UGenericGaemInputMapping::CreateMoveForwardAction()
@@ -144,6 +145,17 @@ void UGenericGaemInputMapping::CreateSwimAction()
 	SwimDownMapping.Modifiers.Add(NegateModifier);
 	Mappings.Add(SwimUpMapping);
 	Mappings.Add(SwimDownMapping);
+}
+
+void UGenericGaemInputMapping::CreateRagdollAction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Creating CreateRagdollAction in GenericGaemInputMapping"));
+	RagdollAction = NewObject<UInputAction>(this, TEXT("A_Ragdoll"));
+	RagdollAction->ValueType = EInputActionValueType::Boolean;
+	RagdollAction->ActionDescription = FText::FromString("Handle Ragdolling");
+	auto RagdollMapping = FEnhancedActionKeyMapping(RagdollAction, EKeys::R);
+	RagdollMapping.Triggers.Add(TriggerPressed);
+	Mappings.Add(RagdollMapping);
 }
 
 UInputAction* UGenericGaemInputMapping::CreateSelectActiveItemAction(int Number)

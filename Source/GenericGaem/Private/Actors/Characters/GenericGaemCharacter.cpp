@@ -225,6 +225,7 @@ void AGenericGaemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	Input->BindAction(LoadedMapping->EscapeMenuAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::EscapeMenu);
 	Input->BindAction(LoadedMapping->UseAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::UseAction);
 	Input->BindAction(LoadedMapping->SwimAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::Swim);
+	Input->BindAction(LoadedMapping->RagdollAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::Ragdoll);
 	// Ugly, there is probably a better way of doing this involving a loop and saving things to class variables
 	Input->BindAction(LoadedMapping->SelectActiveActions[0], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem1);
 	Input->BindAction(LoadedMapping->SelectActiveActions[1], ETriggerEvent::Triggered, this, &AGenericGaemCharacter::SelectItem2);
@@ -305,6 +306,12 @@ void AGenericGaemCharacter::Revive()
 	SetFirstPerson();
 	EnableMovement(false);
 	ShowCursor(true);
+}
+
+void AGenericGaemCharacter::Ragdoll(const FInputActionInstance& Instance)
+{
+	GetMesh()->SetSimulatePhysics(true);
+	bDisableMovement = true;
 }
 
 void AGenericGaemCharacter::SetShowStatusDisplays(bool bShow)

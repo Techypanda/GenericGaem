@@ -28,6 +28,7 @@ public:
 	class UInputAction* EscapeMenuAction;
 	class UInputAction* UseAction;
 	class UInputAction* SwimAction;
+	class UInputAction* RagdollAction;
 	TArray<class UInputAction*> SelectActiveActions;
 	void Initialize();
 private:
@@ -40,5 +41,6 @@ private:
 	void CreateEscapeMenuAction();
 	void CreateUseAction();
 	void CreateSwimAction();
+	void CreateRagdollAction();
 	class UInputAction* CreateSelectActiveItemAction(int Number);
 };
