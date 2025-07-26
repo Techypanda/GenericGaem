@@ -13,10 +13,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "MeleeWeaponItem.h"
 #include "ItemTableRow.h"
-#include "BaseRole.h"
+#include "RagdollCorpse.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 static constexpr float _DetermineNextLeaderTimerInterval = 2.0f;
-static constexpr std::string_view _StartingMoney = "251";
+static std::string_view _StartingMoney = UKismetSystemLibrary::IsPackagedForDistribution() ? "50" : "2000";
 
 AGenericGaemMode::AGenericGaemMode() : _DetermineNextLeaderTimerHandler{}, _DebugHandler{}, _RoleSpawnPoints{}
 {
@@ -64,9 +65,9 @@ void AGenericGaemMode::ServerDeath_Implementation(AGenericGaemPlayerState* Playe
 	PlayerState->InventoryClear();
 	auto DeathLocation = _Player->GetActorLocation();
 	DeathLocation.Z -= 90.0f;
-	const auto Death = GetWorld()->SpawnActor<ADeathObject>(GetGameState<AGenericGaemState>()->GetDeathObject(), DeathLocation, _Player->GetActorRotation(), FActorSpawnParameters{});
-	Death->MulticastSetDeath(RespawnTime, PlayerState->GetPlayerName());
-	Death->SetDeath(RespawnTime, PlayerState ->GetPlayerName());
+	FTransform SpawnTransform{ _Player->GetActorRotation(), DeathLocation };
+	const auto RagdollCorpse = GetWorld()->SpawnActor<ARagdollCorpse>(GetGameState<AGenericGaemState>()->GetRagdollCorpseClass(), DeathLocation, _Player->GetActorRotation(), FActorSpawnParameters{});
+	RagdollCorpse->CopyPlayer(_Player);
 	PlayerState->SetTimeTillRespawn(RespawnTime);
 	_Player->Death();
 	_Player->SetActorLocation(DeadIslandSpawnActor->GetActorLocation());

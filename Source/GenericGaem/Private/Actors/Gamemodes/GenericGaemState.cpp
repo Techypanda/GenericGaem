@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "GenericGaemState.h"
 #include <string>
-#include "DeathObject.h"
+#include "RagdollCorpse.h"
 #include "StarterItemsTableRow.h"
 #include "DataRole.h"
 #include "RoleTableRow.h"
@@ -49,7 +49,7 @@ void AGenericGaemState::SetLeader(int32 InLeaderId)
 	}
 }
 
-const TSubclassOf<ADeathObject> AGenericGaemState::GetDeathObject() const
+const TSubclassOf<ARagdollCorpse> AGenericGaemState::GetRagdollCorpseClass() const
 {
-	return DeathObject;
+	return RagdollCorpse;
 }

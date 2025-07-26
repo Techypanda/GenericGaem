@@ -4,7 +4,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "IRole.h"
-#include "DeathObject.h"
 #include "GenericGaemCharacter.generated.h"
 
 UCLASS()
@@ -26,6 +25,8 @@ public:
 	const float ZoomMagnitude() const;
 	UFUNCTION(BlueprintCallable)
 	void EnableMovement(bool bEnabled);
+	UFUNCTION(BlueprintCallable)
+	void SetSimulatingPhysics(bool bEnabled);
 	UFUNCTION(BlueprintCallable)
 	void ShowCursor(bool bShowCursor);
 	void OnRep_PlayerState() override;
@@ -56,8 +57,13 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
 	void SetShowStatusDisplays(bool bShow);
+	UFUNCTION()
+	void OnRep_SimulatedPhysics();
+	void OnSimulatingPhysics();
 private:
-	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bBindedTextRender;;
+	bool bIsHoldingRightClickInThirdPerson, bAllowZoom, bBindedTextRender;
+	UPROPERTY(ReplicatedUsing=OnRep_SimulatedPhysics)
+	bool bIsSimulatingPhysics;
 	UPROPERTY(Replicated)
 	bool bDisableMovement;
 	UPROPERTY(Replicated)
@@ -76,6 +82,8 @@ private:
 	void OnHealthChange();
 	void BindTextRenders();
 	void Ragdoll(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Unreliable)
+	void ServerRagdoll();
 	void Swim(const FInputActionInstance& Instance);
 	void UseAction(const FInputActionInstance& Instance);
 	void PossessedBy(AController* NewController) override;

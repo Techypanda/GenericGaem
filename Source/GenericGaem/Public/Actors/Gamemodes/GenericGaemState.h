@@ -17,7 +17,7 @@ public:
 	void BeginPlay() override;
 	void SetLeader(int32 InLeaderId);
 	const TSubclassOf<class ADeathObject> GetDeathObject() const;
-	// const TArray<TSubclassOf<class ABaseItem>> GetStarterItemsForRole(ERole Role) const;
+	const TSubclassOf<class ARagdollCorpse> GetRagdollCorpseClass() const;
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Leader)
 	int32 LeaderId;
@@ -28,7 +28,5 @@ protected:
 	void OnRep_Leader();
 	void OnLeaderUpdate();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death);
-	TSubclassOf<class ADeathObject> DeathObject;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GenericGaemMode")
-	UDataTable* RoleStarterItems;
+	TSubclassOf<class ARagdollCorpse> RagdollCorpse;
 };

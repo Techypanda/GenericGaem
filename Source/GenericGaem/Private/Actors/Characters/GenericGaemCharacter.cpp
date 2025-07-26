@@ -272,6 +272,16 @@ void AGenericGaemCharacter::EnableMovement(bool bEnabled)
 	bAllowZoom = bEnabled;
 }
 
+void AGenericGaemCharacter::SetSimulatingPhysics(bool bEnabled)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+	bIsSimulatingPhysics = bEnabled;
+	GetMesh()->SetSimulatePhysics(bEnabled);
+}
+
 void AGenericGaemCharacter::ShowCursor(bool bShowCursor)
 {
 	Cast<APlayerController>(GetController())->bShowMouseCursor = bShowCursor;
@@ -310,14 +320,31 @@ void AGenericGaemCharacter::Revive()
 
 void AGenericGaemCharacter::Ragdoll(const FInputActionInstance& Instance)
 {
-	GetMesh()->SetSimulatePhysics(true);
-	bDisableMovement = true;
+	ServerRagdoll();
+}
+
+
+void AGenericGaemCharacter::ServerRagdoll_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ServerRagdoll called on %s, this func is currently disabled"), *GetName());
+	// TODO: Delay inbetween so can't spam
+	// SetSimulatingPhysics(!bIsSimulatingPhysics);
+	// bDisableMovement = bIsSimulatingPhysics;
 }
 
 void AGenericGaemCharacter::SetShowStatusDisplays(bool bShow)
 {
 	RoleDisplayComponent->SetVisibility(bShow, true);
 	HealthDisplayComponent->SetVisibility(bShow, true);
+}
+
+void AGenericGaemCharacter::OnRep_SimulatedPhysics()
+{
+	OnSimulatingPhysics();
+}
+
+void AGenericGaemCharacter::OnSimulatingPhysics()
+{
 }
 
 void AGenericGaemCharacter::BindTextRenders()
