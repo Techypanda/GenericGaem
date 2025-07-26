@@ -15,20 +15,9 @@ void AMeleeWeaponItem::Use()
 void AMeleeWeaponItem::Attack()
 {
 	// TODO: add delay
-	const auto& _PlayerState = Cast<AGenericGaemPlayerState>(GetOwner());
-	const auto& _Controller = Cast<APlayerController>(_PlayerState->GetOwner());
-	const auto& _Character = Cast<AGenericGaemCharacter>(_Controller->GetCharacter());
-	ECollisionChannel TraceChannelProperty = ECC_Pawn;
-	FHitResult Hit;
-	FVector StartOfTrace = _Character->GetActorLocation();
-	FVector EndOfTrace = StartOfTrace + _Character->GetActorForwardVector() * HitDistance;
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(_Character);
-	const auto _World = _Character->GetWorld();
-	_World->LineTraceSingleByChannel(Hit, StartOfTrace, EndOfTrace, TraceChannelProperty, QueryParams);
-	const auto& HitActor = Hit.GetActor();
-	const auto& HitSucceededOnPlayer = Hit.bBlockingHit && IsValid(HitActor);
-	if (!HitSucceededOnPlayer)
+	const auto& _Character = GetCharacter();
+	const auto& HitDetected = RaytraceForHit(_Character, _Character->GetActorForwardVector());
+	if (!HitDetected)
 	{
 		return;
 	}
@@ -36,23 +25,44 @@ void AMeleeWeaponItem::Attack()
 	ServerAttack(_Character->GetActorForwardVector());
 }
 
-void AMeleeWeaponItem::ServerAttack_Implementation(FVector ActorForwardVector)
+AActor* AMeleeWeaponItem::RaytraceForHit(AGenericGaemCharacter* _Character, FVector ActorForwardVector, bool bDrawDebugLine) const
 {
-	UE_LOG(LogTemp, Warning, TEXT("Server Attack called on %s"), *GetName());
-	const auto& _Controller = Cast<AGenericGaemCharacterController>(Owner->GetOwner());
-	const auto& _Character = Cast<AGenericGaemCharacter>(_Controller->GetCharacter());
-	const auto _World = _Character->GetWorld();
 	ECollisionChannel TraceChannelProperty = ECC_Pawn;
 	FHitResult Hit;
 	FVector StartOfTrace = _Character->GetActorLocation();
 	FVector EndOfTrace = StartOfTrace + ActorForwardVector * HitDistance;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(_Character);
+	const auto _World = _Character->GetWorld();
 	_World->LineTraceSingleByChannel(Hit, StartOfTrace, EndOfTrace, TraceChannelProperty, QueryParams);
 	const auto& HitActor = Hit.GetActor();
 	const auto& HitSucceededOnPlayer = Hit.bBlockingHit && IsValid(HitActor);
-	DrawDebugLine(_World, StartOfTrace, EndOfTrace, HitSucceededOnPlayer ? FColor::Blue : FColor::Red, false, 5.0f, 0, 10.0f);
+	if (bDrawDebugLine)
+	{
+		DrawDebugLine(_World, StartOfTrace, EndOfTrace, HitSucceededOnPlayer ? FColor::Blue : FColor::Red, false, 5.0f, 0, 10.0f);
+	}
 	if (!HitSucceededOnPlayer)
+	{
+		return nullptr;
+	}
+	return HitActor;
+}
+
+AGenericGaemCharacter* AMeleeWeaponItem::GetCharacter()
+{
+	const auto& _PlayerState = Cast<AGenericGaemPlayerState>(GetOwner());
+	const auto& _Controller = Cast<APlayerController>(_PlayerState->GetOwner());
+	const auto& _Character = Cast<AGenericGaemCharacter>(_Controller->GetCharacter());
+	return _Character;
+}
+
+void AMeleeWeaponItem::ServerAttack_Implementation(FVector ActorForwardVector)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Server Attack called on %s"), *GetName());
+	const auto& _Character = GetCharacter();
+	const auto _World = _Character->GetWorld();
+	const auto& HitActor = RaytraceForHit(_Character, ActorForwardVector, true);
+	if (!HitActor)
 	{
 		return;
 	}

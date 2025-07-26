@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/TimerHandle.h"
 #include "Tree.generated.h"
 
 UCLASS()
 class ATree : public AActor
 {
 	GENERATED_BODY()
-public:	
+public:
 	// Sets default values for this actor's properties
 	ATree();
 	UFUNCTION(BlueprintCallable, Category = "Tree")
@@ -21,7 +22,20 @@ public:
 	bool SetIsFruitTree(bool bInFruitTree);
 	UFUNCTION(BlueprintCallable, Category = "Tree")
 	bool GetIsFruitTree() const;
+	UFUNCTION(BlueprintCallable, Category = "Tree")
+	void SetHealth(float NewHealth);
+	UFUNCTION(BlueprintCallable, Category = "Tree")
+	float GetHealth() const;
+	UFUNCTION(BlueprintCallable, Category = "Tree")
+	float BreakTree();
+	void RespawnTree();
+	void InitialTreeLogic();
 protected:
+	FTimerHandle _RespawnTreeTimer;
+	UPROPERTY(ReplicatedUsing = OnRep_TreeDead)
+	bool bTreeDead;
+	UPROPERTY(ReplicatedUsing = OnRep_Health)
+	float _Health;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	UPROPERTY(ReplicatedUsing = OnRep_IsMoneyTree)
 	bool bIsMoneyTree;
@@ -50,6 +64,12 @@ protected:
 	UFUNCTION()
 	void OnRep_IsFruitTree();
 	void OnFruitTreeUpdate();
+	UFUNCTION()
+	void OnRep_Health();
+	void OnHealthUpdate();
+	UFUNCTION()
+	void OnRep_TreeDead();
+	void OnTreeDead();
 private:
 	void RandomizeTreeMesh();
 };

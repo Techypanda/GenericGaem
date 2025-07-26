@@ -10,7 +10,7 @@ AGenericGaemRoleSpawnpoint::AGenericGaemRoleSpawnpoint() : SpawnRadius{ 5.0f }
 {
 	PrimaryActorTick.bCanEverTick = false;
 	SpawnForwardVector = CreateDefaultSubobject<UArrowComponent>(TEXT("SpawnForwardVector"));
-	SpawnForwardVector->SetupAttachment(RootComponent);
+	SetRootComponent(SpawnForwardVector);
 }
 
 FVector AGenericGaemRoleSpawnpoint::GetSpawnLocation() const

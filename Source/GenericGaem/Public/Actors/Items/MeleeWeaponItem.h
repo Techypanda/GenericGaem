@@ -22,6 +22,10 @@ public:
 	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem/Weapon", meta=(DisplayName = "OnHit"))
 	//virtual void ReceiveOnHit()
 protected:
+	UFUNCTION(BlueprintCallable)
+	AActor* RaytraceForHit(class AGenericGaemCharacter* _Character, FVector ActorForwardVector, bool drawDebugLine = false) const;
+	UFUNCTION(BlueprintCallable)
+	class AGenericGaemCharacter* GetCharacter();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	float HitDistance;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")

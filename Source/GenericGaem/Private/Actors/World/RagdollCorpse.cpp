@@ -13,7 +13,7 @@ ARagdollCorpse::ARagdollCorpse()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	SceneComponent->SetupAttachment(RootComponent);
+	SetRootComponent(SceneComponent);
 	SkeletonMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletonMeshComponent"));
 	SkeletonMeshComponent->SetupAttachment(SceneComponent);
 	SkeletonMeshComponent->SetCollisionProfileName(TEXT("Ragdoll"));
