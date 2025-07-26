@@ -40,6 +40,10 @@ public:
 	void SetMoney(FString NewMoney);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
 	FString GetMoney() const;
+	DECLARE_EVENT_OneParam(FLayerViewModel, FShopDisplayRequested, class AShop*)
+	FShopDisplayRequested& OnShopDisplayRequested() { return _ShopDisplayRequestedEvent; }
+	DECLARE_EVENT_OneParam(FLayerViewModel, FShopDisplayExited, class AShop*)
+	FShopDisplayExited& OnShopDisplayExited() { return _ShopDisplayExitedEvent; }
 	DECLARE_EVENT(FLayerViewModel, FSelectedActiveItemChanged)
 	FSelectedActiveItemChanged& OnSelectedActiveItemChanged() { return _SelectedActiveItemChangedEvent; }
 	DECLARE_EVENT(FLayerViewModel, FMoneyChangedEvent)
@@ -147,6 +151,8 @@ protected:
 	FSelectedActiveItemChanged _SelectedActiveItemChangedEvent;
 	FPlayerDeathEvent _PlayerDeathEvent;
 	FPlayerReviveEvent _PlayerReviveEvent;
+	FShopDisplayRequested _ShopDisplayRequestedEvent;
+	FShopDisplayExited _ShopDisplayExitedEvent;
 	// Unreal Engine seems to suggest storing a UObject pointer for interfaces... https://dev.epicgames.com/documentation/en-us/unreal-engine/interfaces-in-unreal-engine#safelystoreobjectandinterfacepointers
 	UPROPERTY(Replicated)
 	TObjectPtr<class ABaseItem> _EquippedItem;

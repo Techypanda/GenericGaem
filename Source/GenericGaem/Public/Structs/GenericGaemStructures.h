@@ -16,3 +16,17 @@ struct GENERICGAEM_API FRoleListItem
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleListItemProperties")
 	FString Description;
 };
+
+USTRUCT(BlueprintType)
+struct GENERICGAEM_API FShopListItem
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleListItemProperties")
+	FString Name;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleListItemProperties")
+	FString Price;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleListItemProperties")
+	int RequiredTier;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleListItemProperties")
+	FString RowName;
+};

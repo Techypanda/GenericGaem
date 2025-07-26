@@ -7,6 +7,7 @@
 #include "GenericGaemStructures.h"
 #include "RoleTableRow.h"
 #include "DataRole.h"
+#include "Shop.h"
 #include "GameFramework/PlayerController.h"
 
 void UGenericGaemWidget::InitializeWidget(UWorld* World)
@@ -29,7 +30,14 @@ void UGenericGaemWidget::InitializeWidget(UWorld* World)
 	PlayerState->OnSelectedActiveItemChanged().AddUObject(this, &UGenericGaemWidget::OnActiveItemSelectedChanged);
 	PlayerState->OnPlayerDeath().AddUObject(this, &UGenericGaemWidget::OnPlayerDeath);
 	PlayerState->OnPlayerRevive().AddUObject(this, &UGenericGaemWidget::OnPlayerRevive);
+	PlayerState->OnShopDisplayRequested().AddUObject(this, &UGenericGaemWidget::OnShopRequested);
+	PlayerState->OnShopDisplayExited().AddUObject(this, &UGenericGaemWidget::OnShopExited);
 	Player->OnEscapeMenu().AddUObject(this, &UGenericGaemWidget::OnEscapeMenu);
+}
+
+void UGenericGaemWidget::OnShopRequested_Implementation(AShop* Shop)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Shop requested in GenericGaemWidget: %s"), *Shop->GetName());
 }
 
 void UGenericGaemWidget::OnEscapeMenu_Implementation()
@@ -55,6 +63,11 @@ void UGenericGaemWidget::PostLoad()
 void UGenericGaemWidget::OnPlayerRevive_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Player revived in GenericGaemWidget"));
+}
+
+void UGenericGaemWidget::OnShopExited_Implementation(AShop* Shop)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Shop exited in GenericGaemWidget: %s"), *Shop->GetName());
 }
 
 TArray<FRoleListItem> UGenericGaemWidget::GetRoleListItems() const
