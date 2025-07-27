@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "RoleName.h"
+#include "Misc/DataValidation.h"
 #include "RoleTableRow.generated.h"
 
 /**
@@ -29,5 +30,5 @@ public:
 	static const class UDataRole* GetDataRole(FString RoleName, UDataTable* RoleTable);
 
 	void OnDataTableChanged(const UDataTable* InDataTable, const FName InRowName) override;
-	EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+	EDataValidationResult IsDataValid(FDataValidationContext& Context) const;
 };

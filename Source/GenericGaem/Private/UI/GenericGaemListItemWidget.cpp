@@ -4,8 +4,15 @@
 #include "GenericGaemListItemWidget.h"
 #include "GenericGaemPlayerState.h"
 #include "RoleTableRow.h"
+#include "Shop.h"
 #include "DataRole.h"
 #include <string>
+
+void UGenericGaemListItemWidget::SetShop(AShop* Shop)
+{
+	_Shop = Shop;
+	PurchaseProgress = 0.0f;
+}
 
 bool UGenericGaemListItemWidget::SelectRole(FString RoleName)
 {
@@ -21,4 +28,17 @@ bool UGenericGaemListItemWidget::SelectRole(FString RoleName)
 		PlayerState->OnRolePurchased().Broadcast();
 	}
 	return false;
+}
+
+bool UGenericGaemListItemWidget::BeginPurchaseItem(FString RowName, FString Price)
+{
+	const auto PlayerState = GetOwningPlayerState<AGenericGaemPlayerState>();
+	if (FCString::Atoi(*PlayerState->GetMoney()) < FCString::Atoi(*Price))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not enough money to purchase item %s. Required: %s, Available: %s"), *RowName, *Price, *PlayerState->GetMoney());
+		return false;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Player %s has enough money to purchase item %s. Price: %s"), *PlayerState->GetPlayerName(), *RowName, *Price);
+	PlayerState->ServerBeginPurchasingItem(5.0f, RowName, _Shop); // 5 seconds to purchase item
+	return true;
 }

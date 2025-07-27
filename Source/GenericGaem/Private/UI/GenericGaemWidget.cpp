@@ -32,7 +32,13 @@ void UGenericGaemWidget::InitializeWidget(UWorld* World)
 	PlayerState->OnPlayerRevive().AddUObject(this, &UGenericGaemWidget::OnPlayerRevive);
 	PlayerState->OnShopDisplayRequested().AddUObject(this, &UGenericGaemWidget::OnShopRequested);
 	PlayerState->OnShopDisplayExited().AddUObject(this, &UGenericGaemWidget::OnShopExited);
+	PlayerState->OnPlayerShopReload().AddUObject(this, &UGenericGaemWidget::OnShopReload);
 	Player->OnEscapeMenu().AddUObject(this, &UGenericGaemWidget::OnEscapeMenu);
+}
+
+void UGenericGaemWidget::OnShopReload_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Shop reloaded in GenericGaemWidget"));
 }
 
 void UGenericGaemWidget::OnShopRequested_Implementation(AShop* Shop)

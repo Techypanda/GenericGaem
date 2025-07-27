@@ -23,20 +23,35 @@ public:
 	FString GetShopTitle() const { return _ShopTitle; }
 	UFUNCTION(BlueprintCallable)
 	TArray<struct FShopListItem> GetItemsForSale() const;
+	UFUNCTION(BlueprintCallable)
+	FString GetPriceOfItem(FName Row) const;
+	UFUNCTION(BlueprintCallable)
+	TSubclassOf<ABaseItem> GetItemClass(FName Row) const;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	UFUNCTION(BlueprintCallable)
 	int GetCurrentTier() const { return CurrentTier; }
 	UFUNCTION(BlueprintCallable)
-	int GetTierCount() const { return TierCount; }
+	int GetTierCount() const { return CachedTierCount; }
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentTier(int NewTier);
+	UFUNCTION()
+	int CalculateStartingTierFromDt() const;
+	UFUNCTION()
+	int CalculateFinalTierFromDt() const;
+	UFUNCTION(BlueprintCallable)
+	bool CanUpgradeFurther() const { return bCanUpgradeFurther; }
+	void SetCanUpgradeFurther(bool bNewCanUpgrade);
+	UFUNCTION(BlueprintCallable)
+	FString GetNextUpgradeCost() const { return NextUpgradeCost; }
+	void SetNextUpgradeCost(FString NextCost);
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
-	int StartingTier;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
-	int TierCount;
+	int CachedTierCount;
+	UPROPERTY(Replicated)
+	FString NextUpgradeCost;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
 	FString _ShopTitle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
+	UDataTable* Tiers;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
 	UDataTable* ItemsForSale;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
@@ -45,6 +60,12 @@ protected:
 	class UBoxComponent* ShopOwnerCollider;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
 	class UBoxComponent* ShopBuyerCollider;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Shop")
+	class UTextRenderComponent* ShopWorkerLabel;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Shop")
+	class UTextRenderComponent* TierLabel;
+	UPROPERTY(Replicated)
+	bool bCanUpgradeFurther;
 	UPROPERTY(ReplicatedUsing=OnRep_ShopWorker)
 	class AGenericGaemCharacter* _ShopWorker;
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentTier)
@@ -52,8 +73,9 @@ protected:
 	virtual void BeginPlay() override;
 	UFUNCTION()
 	void OnRep_CurrentTier();
-	UFUNCTION(BlueprintNativeEvent)
 	void OnCurrentTierUpdate();
+	UFUNCTION(BlueprintNativeEvent)
+	void NativeOnCurrentTierUpdate();
 	UFUNCTION()
 	void OnRep_ShopWorker();
 	UFUNCTION(BlueprintNativeEvent)
@@ -66,4 +88,7 @@ protected:
 	void OnShopBuyColliderEnter(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OnShopBuyColliderExit(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void UpdateTierLabel();
+private:
+	FString _GetNextUpgradeCost() const;
 };

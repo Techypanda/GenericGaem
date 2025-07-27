@@ -30,6 +30,8 @@ public:
 	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	UFUNCTION(Server, Reliable)
 	void ServerDeath(class AGenericGaemPlayerState* PlayerState);
+	UFUNCTION(Server, Unreliable)
+	void ServerPurchaseStore(class AGenericGaemPlayerState* PlayerState, class AShop* Shop);
 protected:
 	FTimerHandle _DetermineNextLeaderTimerHandler;
 	FTimerHandle _DeathTimerHandler;

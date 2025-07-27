@@ -40,6 +40,7 @@ public:
 	void SetMoney(FString NewMoney);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
 	FString GetMoney() const;
+	void OnShopExitedHandler(class AShop* Shop);
 	DECLARE_EVENT_OneParam(FLayerViewModel, FShopDisplayRequested, class AShop*)
 	FShopDisplayRequested& OnShopDisplayRequested() { return _ShopDisplayRequestedEvent; }
 	DECLARE_EVENT_OneParam(FLayerViewModel, FShopDisplayExited, class AShop*)
@@ -60,6 +61,16 @@ public:
 	FPlayerDeathEvent& OnPlayerDeath() { return _PlayerDeathEvent; }
 	DECLARE_EVENT(FLayerViewModel, FPlayerReviveEvent)
 	FPlayerReviveEvent& OnPlayerRevive() { return _PlayerReviveEvent; }
+	DECLARE_EVENT(FLayerViewModel, FPlayerShopReloadEvent)
+	FPlayerShopReloadEvent& OnPlayerShopReload() { return _PlayerShopReloadEvent; }
+	UFUNCTION(NetMulticast, Unreliable)
+	void BroadcastShopReload();
+	UFUNCTION(BlueprintCallable)
+	void BroadcastShopExited();
+	UFUNCTION(BlueprintCallable)
+	bool UpgradeShop(class AShop* Shop);
+	UFUNCTION(Server, Unreliable)
+	void ServerUpgradeShop(class AShop* Shop);
 	UFUNCTION(Server, Reliable)
 	void ServerPurchaseRole(const FString& RoleToPurchase);
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Stats")
@@ -96,7 +107,30 @@ public:
 	float GetTimeTillRespawn() const;
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem/Death")
 	void SetTimeTillRespawn(float InTime);
+	void BeginPlay() override;
+	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = "GenericGaem/Shop")
+	void ServerBeginPurchasingItem(float WaitTime, const FString& RowName, const class AShop* Shop);
+	void FinishPurchasingItem();
+	void SetTimeSpentPurchasingItem(float InTime);
+	void SetTimeRequiredToWaitForPurchasingItem(float InTime);
+	void SetIsPurchasingItem(bool _bIsPurchasingItem);
+	UFUNCTION(BlueprintCallable)
+	float GetTimeSpentPurchasingItem() const { return TimeSpentPurchasingItem; }
+	UFUNCTION(BlueprintCallable)
+	float GetTimeRequiredToWaitForPurchasingItem() const { return TimeRequiredToWaitForPurchasingItem; }
+	UFUNCTION(BlueprintCallable)
+	bool GetIsPurchasingItem() const { return bIsPurchasingItem; }
 protected:
+	UPROPERTY(Replicated)
+	const class AShop* _CurrentShop;
+	UPROPERTY(Replicated)
+	FString _CurrentRowName;
+	UPROPERTY(Replicated)
+	bool bIsPurchasingItem;
+	UPROPERTY(Replicated)
+	float TimeSpentPurchasingItem;
+	UPROPERTY(Replicated)
+	float TimeRequiredToWaitForPurchasingItem;
 	UPROPERTY(Replicated)
 	float _TimeTillRespawn;
 	UPROPERTY(Replicated)
@@ -153,9 +187,11 @@ protected:
 	FPlayerReviveEvent _PlayerReviveEvent;
 	FShopDisplayRequested _ShopDisplayRequestedEvent;
 	FShopDisplayExited _ShopDisplayExitedEvent;
+	FPlayerShopReloadEvent _PlayerShopReloadEvent;
 	// Unreal Engine seems to suggest storing a UObject pointer for interfaces... https://dev.epicgames.com/documentation/en-us/unreal-engine/interfaces-in-unreal-engine#safelystoreobjectandinterfacepointers
 	UPROPERTY(Replicated)
 	TObjectPtr<class ABaseItem> _EquippedItem;
 private:
 	static TArray<class ABaseItem*> BuildItemsArrayOfSize(int Size);
+	void ResetShopValues();
 };

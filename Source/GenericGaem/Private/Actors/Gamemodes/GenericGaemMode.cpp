@@ -2,6 +2,7 @@
 #include "GenericGaemMode.h"
 #include <memory>
 #include "BaseRole.h"
+#include "Shop.h"
 #include "GenericGaemState.h"
 #include "GameFramework/PlayerController.h"
 #include "GenericGaemPlayerState.h"
@@ -17,7 +18,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 static constexpr float _DetermineNextLeaderTimerInterval = 2.0f;
-static std::string_view _StartingMoney = UKismetSystemLibrary::IsPackagedForDistribution() ? "50" : "2000";
+static std::string_view _StartingMoney = UKismetSystemLibrary::IsPackagedForDistribution() ? "50" : "10000";
 
 AGenericGaemMode::AGenericGaemMode() : _DetermineNextLeaderTimerHandler{}, _DebugHandler{}, _RoleSpawnPoints{}
 {
@@ -54,6 +55,28 @@ void AGenericGaemMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 	GetWorld()->GetTimerManager().ClearTimer(_DetermineNextLeaderTimerHandler);
 	GetWorld()->GetTimerManager().ClearTimer(_DeathTimerHandler);
+}
+
+void AGenericGaemMode::ServerPurchaseStore_Implementation(AGenericGaemPlayerState* PlayerState, AShop* Shop)
+{
+	if (PlayerState->GetGameRole() != UBaseRole::LeaderRoleName)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player %s is not a leader and cannot purchase upgrades."), *PlayerState->GetPlayerName());
+		return;
+	}
+	if (FCString::Atoi(*PlayerState->GetMoney()) < FCString::Atoi(*Shop->GetNextUpgradeCost()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player %s does not have enough money to purchase upgrade."), *PlayerState->GetPlayerName());
+		return;
+	}
+	if (!Shop->CanUpgradeFurther())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Shop cannot be upgraded further."));
+		return;
+	}
+	PlayerState->SetMoney(FString::FromInt(FCString::Atoi(*PlayerState->GetMoney()) - FCString::Atoi(*Shop->GetNextUpgradeCost())));
+	Shop->SetCurrentTier(Shop->GetCurrentTier() + 1);
+	PlayerState->BroadcastShopReload();
 }
 
 void AGenericGaemMode::ServerDeath_Implementation(AGenericGaemPlayerState* PlayerState)
@@ -115,7 +138,7 @@ void AGenericGaemMode::DetermineNextLeader()
 		UE_LOG(LogTemp, Warning, TEXT("DetermineNextLeader called on client, ignoring"));
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Determining next leader..."));
+	UE_LOG(LogTemp, VeryVerbose, TEXT("Determining next leader..."));
 	if (!GameState || GameState->PlayerArray.Num() < 1)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GameState or PlayerArray is null in DetermineNextLeader, will check again shortly"));
@@ -130,7 +153,7 @@ void AGenericGaemMode::DetermineNextLeader()
 		});
 	if (CharactersWhoHavePickedARole.Num() < 1)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("There is currently no players with a role"));
+		UE_LOG(LogTemp, Verbose, TEXT("There is currently no players with a role"));
 		return;
 	}
 	CharactersWhoHavePickedARole.Sort([](const APlayerState& A, const APlayerState& B)
@@ -155,7 +178,7 @@ void AGenericGaemMode::OnDeathCheck()
 		return;
 	}
 	const auto NowUnix = FDateTime::Now().ToUnixTimestamp();
-	UE_LOG(LogTemp, Warning, TEXT("OnDeathCheck called at %lld unix (Dead Players Waiting: %d)"), NowUnix, _DeadPlayerStates.size());
+	UE_LOG(LogTemp, VeryVerbose, TEXT("OnDeathCheck called at %lld unix (Dead Players Waiting: %d)"), NowUnix, _DeadPlayerStates.size());
 	auto Iterator = _DeadPlayerStates.lower_bound(NowUnix);
 	for (;;)
 	{

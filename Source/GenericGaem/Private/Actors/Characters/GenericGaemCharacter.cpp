@@ -24,7 +24,7 @@ static constexpr float RoleDisplayFontsize = 16.0f;
 static constexpr float HealthDisplayFontsize = 16.0f;
 
 // Sets default values
-AGenericGaemCharacter::AGenericGaemCharacter() : RcMouseX(0), RcMouseY(0), bIsHoldingRightClickInThirdPerson(false), MaximumZoomValue(300.0f), MinimumZoomValue(0.0f), ZoomMagnitudeValue(10.0f), bAllowZoom(true), bDisableMovement(false), bDisableLook(false), bBindedTextRender{ false }
+AGenericGaemCharacter::AGenericGaemCharacter() : bIsFirstPerson{false}, MinimumZoomValue(0.0f), MaximumZoomValue(300.0f), ZoomMagnitudeValue(10.0f), bIsHoldingRightClickInThirdPerson(false), bAllowZoom(true), bBindedTextRender{false}, bDisableMovement(false), bDisableLook(false), RcMouseX(0), RcMouseY(0)
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -220,7 +220,7 @@ void AGenericGaemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	Input->BindAction(LoadedMapping->Mouse2DAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::Look2D);
 	Input->BindAction(LoadedMapping->MoveForwardAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::MoveForward);
 	Input->BindAction(LoadedMapping->MoveRightAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::MoveRight);
-	Input->BindAction(LoadedMapping->JumpAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::Jump);
+	Input->BindAction(LoadedMapping->JumpAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::JumpAction);
 	Input->BindAction(LoadedMapping->ThirdPersonMouse2D, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::ThirdPersonRightClick);
 	Input->BindAction(LoadedMapping->EscapeMenuAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::EscapeMenu);
 	Input->BindAction(LoadedMapping->UseAction, ETriggerEvent::Triggered, this, &AGenericGaemCharacter::UseAction);
@@ -457,7 +457,7 @@ void AGenericGaemCharacter::MoveRight(const FInputActionInstance& Instance)
 	AddMovementInput(Direction, Value);
 }
 
-void AGenericGaemCharacter::Jump(const FInputActionInstance& Instance)
+void AGenericGaemCharacter::JumpAction(const FInputActionInstance& Instance)
 {
 	if (bDisableMovement)
 	{

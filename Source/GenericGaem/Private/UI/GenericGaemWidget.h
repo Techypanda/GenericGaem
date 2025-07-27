@@ -39,6 +39,8 @@ protected:
 	void OnShopRequested(class AShop* Shop);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
 	void OnShopExited(class AShop* Shop);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GenericGaem")
+	void OnShopReload();
 	UFUNCTION(BlueprintCallable, Category = "GenericGaem")
 	TArray<struct FRoleListItem> GetRoleListItems() const;
 	FTimerHandle _HackyTimerHandle;

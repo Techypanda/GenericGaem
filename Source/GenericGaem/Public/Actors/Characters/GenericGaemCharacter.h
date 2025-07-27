@@ -77,7 +77,7 @@ private:
 	void MoveForward(const struct FInputActionInstance& Instance);
 	void MoveRight(const struct FInputActionInstance& Instance);
 	void ThirdPersonRightClick(const struct FInputActionInstance& Instance);
-	void Jump(const struct FInputActionInstance& Instance);
+	void JumpAction(const struct FInputActionInstance& Instance);
 	void OnRoleChange();
 	void OnHealthChange();
 	void BindTextRenders();

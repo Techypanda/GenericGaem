@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GenericGaemCharacter.h"
 #include "IItem.h"
+#include "Shop.h"
 #include "RoleTableRow.h"
 #include "DataRole.h"
 #include "BaseItem.h"
@@ -25,6 +26,21 @@ AGenericGaemPlayerState::AGenericGaemPlayerState() : _MoneyChangedEvent{}, _Heal
 void AGenericGaemPlayerState::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bIsPurchasingItem && GetLocalRole() == ROLE_Authority)
+	{
+		if (!_CurrentShop || !_CurrentShop->GetShopWorker())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Current shop or shop worker is null, resetting purchasing item state"));
+			ResetShopValues();
+			return;
+		}
+		const auto& NewTimeSpentPurchasing = std::min(TimeSpentPurchasingItem + DeltaTime, TimeRequiredToWaitForPurchasingItem);
+		SetTimeSpentPurchasingItem(NewTimeSpentPurchasing);
+		if (NewTimeSpentPurchasing == TimeRequiredToWaitForPurchasingItem)
+		{
+			FinishPurchasingItem();
+		}
+	}
 	if (bIsDead) {
 		_TimeTillRespawn = std::max(_TimeTillRespawn - DeltaTime, 0.0f);
 	}
@@ -33,11 +49,24 @@ void AGenericGaemPlayerState::Tick(float DeltaTime)
 void AGenericGaemPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGenericGaemPlayerState, _Health);
 	DOREPLIFETIME(AGenericGaemPlayerState, _AssignedRole);
 	DOREPLIFETIME(AGenericGaemPlayerState, _LastLeaderDateTimeString);
 	DOREPLIFETIME(AGenericGaemPlayerState, bIsInvulnerable);
 	DOREPLIFETIME(AGenericGaemPlayerState, _EquippedItem);
 	DOREPLIFETIME(AGenericGaemPlayerState, bIsDead);
+	DOREPLIFETIME(AGenericGaemPlayerState, _CurrentShop);
+	DOREPLIFETIME(AGenericGaemPlayerState, _CurrentRowName);
+	DOREPLIFETIME(AGenericGaemPlayerState, bIsPurchasingItem);
+	DOREPLIFETIME(AGenericGaemPlayerState, TimeSpentPurchasingItem);
+	DOREPLIFETIME(AGenericGaemPlayerState, TimeRequiredToWaitForPurchasingItem);
+	DOREPLIFETIME(AGenericGaemPlayerState, _TimeTillRespawn);
+}
+
+void AGenericGaemPlayerState::ServerUpgradeShop_Implementation(AShop* Shop)
+{
+	// Need to escalate to gamemode
+	GetWorld()->GetAuthGameMode<AGenericGaemMode>()->ServerPurchaseStore(this, Shop);
 }
 
 void AGenericGaemPlayerState::Revive()
@@ -105,6 +134,11 @@ FString AGenericGaemPlayerState::GetMoney() const
 	return _Money;
 }
 
+void AGenericGaemPlayerState::OnShopExitedHandler(AShop* Shop)
+{
+	ResetShopValues();
+}
+
 void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(const FString& RoleToPurchase)
 {
 	if (GetLocalRole() != ROLE_Authority)
@@ -135,6 +169,36 @@ void AGenericGaemPlayerState::ServerPurchaseRole_Implementation(const FString& R
 	}
 	GetWorld()->GetAuthGameMode<AGenericGaemMode>()->MovePlayerToSpawnPoint(this);
 	UE_LOG(LogTemp, Warning, TEXT("Role %s purchased successfully for player_id: %d. Remaining money: %s"), *LocalRole->GetRoleName(), GetPlayerId(), *GetMoney());
+}
+
+void AGenericGaemPlayerState::BroadcastShopExited()
+{
+	if (_CurrentShop)
+	{
+		// dangerous, const cast spooky
+		OnShopDisplayExited().Broadcast(const_cast<AShop*>(_CurrentShop));
+	}
+}
+
+bool AGenericGaemPlayerState::UpgradeShop(AShop* Shop)
+{
+	if (GetGameRole() != UBaseRole::LeaderRoleName)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player %s is not a leader and cannot purchase upgrades."), *GetPlayerName());
+		return false;
+	}
+	if (FCString::Atoi(*GetMoney()) < FCString::Atoi(*Shop->GetNextUpgradeCost()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player %s does not have enough money to purchase upgrade."), *GetPlayerName());
+		return false;
+	}
+	ServerUpgradeShop(Shop);
+	return true;
+}
+
+void AGenericGaemPlayerState::BroadcastShopReload_Implementation()
+{
+	OnPlayerShopReload().Broadcast();
 }
 
 void AGenericGaemPlayerState::SetHealth(float NewHealth)
@@ -341,6 +405,96 @@ void AGenericGaemPlayerState::SetTimeTillRespawn(float InTime)
 	_TimeTillRespawn = InTime;
 }
 
+void AGenericGaemPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+	OnShopDisplayExited().AddUObject(this, &AGenericGaemPlayerState::OnShopExitedHandler);
+}
+
+void AGenericGaemPlayerState::FinishPurchasingItem()
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FinishPurchasingItem called on client, but this should only be called on the server!"));
+		return;
+	}
+	auto ShopWorker = _CurrentShop->GetShopWorker();
+	if (!_CurrentShop || _CurrentRowName.IsEmpty() || !bIsPurchasingItem || TimeSpentPurchasingItem != TimeRequiredToWaitForPurchasingItem || !ShopWorker)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FinishPurchasingItem called but conditions not met for player_id: %d"), GetPlayerId());
+		return;
+	}
+	const auto& ItemPrice = *_CurrentShop->GetPriceOfItem(FName(*_CurrentRowName));
+	SetIsPurchasingItem(false);
+	const auto& MoneyAfterPurchasing = FCString::Atoi(*GetMoney()) - FCString::Atoi(ItemPrice);
+	if (MoneyAfterPurchasing >= 0)
+	{
+		SetMoney(FString::FromInt(MoneyAfterPurchasing));
+		const auto& ItemToBuy = _CurrentShop->GetItemClass(FName(*_CurrentRowName));
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		const auto& _SpawnedItem = GetWorld()->SpawnActor<ABaseItem>(
+			ItemToBuy,
+			SpawnParams
+		);
+		AddToInventory(_SpawnedItem);
+		// Add Money To Worker (TODO: TAX!)
+		// auto ShopWorkerState = ShopWorker->GetPlayerState<AGenericGaemPlayerState>();
+		// ShopWorkerState->SetMoney(FString::FromInt(FCString::Atoi(*ShopWorkerState->GetMoney()) + FCString::Atoi(ItemPrice)));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not enough money to purchase item %s for player_id: %d, resetting shop"), *_CurrentRowName, GetPlayerId());
+	}
+	ResetShopValues();
+}
+
+void AGenericGaemPlayerState::SetTimeSpentPurchasingItem(float InTime)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SetTimeSpentPurchasingItem called on client, but this should only be called on the server!"));
+		return;
+	}
+	TimeSpentPurchasingItem = InTime;
+}
+
+void AGenericGaemPlayerState::SetTimeRequiredToWaitForPurchasingItem(float InTime)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SetTimeRequiredToWaitForPurchasingItem called on client, but this should only be called on the server!"));
+		return;
+	}
+	TimeRequiredToWaitForPurchasingItem = InTime;
+}
+
+void AGenericGaemPlayerState::SetIsPurchasingItem(bool bInIsPurchasingItem)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SetIsPurchasingItem called on client, but this should only be called on the server!"));
+		return;
+	}
+	bIsPurchasingItem = bInIsPurchasingItem;
+}
+
+void AGenericGaemPlayerState::ServerBeginPurchasingItem_Implementation(float WaitTime, const FString& RowName, const AShop* Shop)
+{
+	// TODO: Move to validation
+	if (FCString::Atoi(*GetMoney()) < FCString::Atoi(*Shop->GetPriceOfItem(FName(*RowName))))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not enough money to purchase item %s for player_id: %d"), *RowName, GetPlayerId());
+		return;
+	}
+	_CurrentRowName = RowName;
+	_CurrentShop = Shop;
+	SetTimeSpentPurchasingItem(0.0f);
+	SetTimeRequiredToWaitForPurchasingItem(WaitTime);
+	SetIsPurchasingItem(true);
+	UE_LOG(LogTemp, Warning, TEXT("ServerBeginPurchasingItem called for player_id: %d with WaitTime: %.2f"), GetPlayerId(), WaitTime);
+}
+
 void AGenericGaemPlayerState::ClientRevive_Implementation ()
 {
 	OnPlayerRevive().Broadcast();
@@ -451,4 +605,14 @@ TArray<ABaseItem*> AGenericGaemPlayerState::BuildItemsArrayOfSize(int Size)
 		_ItemsArr.Add(nullptr); // we want to make sure theres always 9 items
 	}
 	return _ItemsArr;
+}
+
+void AGenericGaemPlayerState::ResetShopValues()
+{
+	// Reset Values
+	_CurrentRowName = FString();
+	_CurrentShop = nullptr;
+	SetTimeSpentPurchasingItem(0.0f);
+	SetTimeRequiredToWaitForPurchasingItem(0.0f);
+	SetIsPurchasingItem(false);
 }
