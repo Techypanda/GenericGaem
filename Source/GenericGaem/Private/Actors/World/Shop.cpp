@@ -27,12 +27,8 @@ AShop::AShop()
 	ShopOwnerCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("ShopOwnerCollisionBox"));
 	ShopOwnerCollider->SetupAttachment(SceneComponent);
 	ShopOwnerCollider->BodyInstance.SetInstanceNotifyRBCollision(true);
-	ShopOwnerCollider->OnComponentBeginOverlap.AddDynamic(this, &AShop::OnShopWorkerColliderEnter);
-	ShopOwnerCollider->OnComponentEndOverlap.AddDynamic(this, &AShop::OnShopWorkerColliderExit);
 	ShopBuyerCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("ShopBuyerCollisionBox"));
 	ShopBuyerCollider->SetupAttachment(SceneComponent);
-	ShopBuyerCollider->OnComponentBeginOverlap.AddDynamic(this, &AShop::OnShopBuyColliderEnter);
-	ShopBuyerCollider->OnComponentEndOverlap.AddDynamic(this, &AShop::OnShopBuyColliderExit);
 	ShopWorkerLabel = CreateDefaultSubobject<UTextRenderComponent>(TEXT("ShopWorkerLabel"));
 	ShopWorkerLabel->SetupAttachment(SceneComponent);
 	ShopWorkerLabel->SetIsReplicated(true);
@@ -247,6 +243,10 @@ void AShop::OnShopWorkerColliderEnter(UPrimitiveComponent* OverlappedComponent, 
 void AShop::OnShopWorkerColliderExit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	const auto& ExitingShopWorker = Cast<AGenericGaemCharacter>(OtherActor);
+	if (!ExitingShopWorker)
+	{
+		return;
+	}
 	UE_LOG(LogTemp, Warning, TEXT("Exiting shop worker: %s"), *ExitingShopWorker->GetName());
 	if (_ShopWorker && ExitingShopWorker && _ShopWorker->GetPlayerState()->GetPlayerId() == ExitingShopWorker->GetPlayerState()->GetPlayerId()) // _ShopWorker->GetPlayerState()->GetPlayerId() == ExitingShopWorker->GetPlayerState()->GetPlayerId()
 	{

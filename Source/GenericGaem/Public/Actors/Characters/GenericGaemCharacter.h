@@ -32,6 +32,8 @@ public:
 	void OnRep_PlayerState() override;
 	DECLARE_EVENT(FLayerViewModel, FEscapeMenuEvent)
 	FEscapeMenuEvent& OnEscapeMenu() { return _EscapeMenuEvent; }
+	UFUNCTION()
+	FVector GetCameraLocation() const;
 	UFUNCTION(BlueprintCallable)
 	void Death();
 	void Revive();
@@ -71,6 +73,7 @@ private:
 	float RcMouseX, RcMouseY;
 	FEscapeMenuEvent _EscapeMenuEvent;
 	class UTextRenderComponent* CreateTextRenderComponent(const wchar_t* const Name, const float& ZOffset, const float& FontSize);
+	void RotateActorToFaceLocalCamera(class UTextRenderComponent* Actor);
 	void Zoom(const struct FInputActionInstance& Instance);
 	void EscapeMenu(const struct FInputActionInstance& Instance);
 	void Look2D(const struct FInputActionInstance& Instance);

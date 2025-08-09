@@ -26,7 +26,7 @@ static constexpr float HealthDisplayFontsize = 16.0f;
 // Sets default values
 AGenericGaemCharacter::AGenericGaemCharacter() : bIsFirstPerson{false}, MinimumZoomValue(0.0f), MaximumZoomValue(300.0f), ZoomMagnitudeValue(10.0f), bIsHoldingRightClickInThirdPerson(false), bAllowZoom(true), bBindedTextRender{false}, bDisableMovement(false), bDisableLook(false), RcMouseX(0), RcMouseY(0)
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	GetCharacterMovement()->SetIsReplicated(true);
 	GetMesh()->SetIsReplicated(true);
@@ -50,6 +50,22 @@ UTextRenderComponent* AGenericGaemCharacter::CreateTextRenderComponent(const wch
 	NewTextDisplay->SetIsReplicated(true);
 	NewTextDisplay->SetWorldSize(FontSize);
 	return NewTextDisplay;
+}
+
+void AGenericGaemCharacter::RotateActorToFaceLocalCamera(UTextRenderComponent* Component)
+{
+	if (!GetWorld()->GetFirstPlayerController())
+	{
+		return;
+	}
+	const auto& PlayerPawn = Cast<AGenericGaemCharacter>(GetWorld()->GetFirstLocalPlayerFromController()->GetPlayerController(GetWorld())->GetPawn());
+	if (PlayerPawn)
+	{
+		FVector Object1Location = Component->GetComponentLocation();
+		FVector Object2Location = PlayerPawn->GetCameraLocation();
+		FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(Object1Location, Object2Location);
+		Component->SetWorldRotation(TargetRotation);
+	}
 }
 
 void AGenericGaemCharacter::SetFirstPerson()
@@ -191,6 +207,8 @@ void AGenericGaemCharacter::SelectItem9(const FInputActionInstance& Instance)
 void AGenericGaemCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	RotateActorToFaceLocalCamera(RoleDisplayComponent);
+	RotateActorToFaceLocalCamera(HealthDisplayComponent);
 }
 
 // Called to bind functionality to input
@@ -297,6 +315,11 @@ void AGenericGaemCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	BindTextRenders();
+}
+
+FVector AGenericGaemCharacter::GetCameraLocation() const
+{
+	return CameraComponent->GetComponentLocation();
 }
 
 void AGenericGaemCharacter::Death()
