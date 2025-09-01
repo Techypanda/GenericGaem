@@ -1,3 +1,7 @@
+## State Of Game
+
+Prototype is 'done' and moving to a more refined version, game now called Chaos Town
+
 # Generic Gaem
 <p align="center">
     <img src="docs/GenericGaemGenAIBanner.png" alt="drawing" height="300" />
