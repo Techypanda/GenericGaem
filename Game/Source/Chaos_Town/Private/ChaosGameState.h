@@ -18,6 +18,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TArray<TSubclassOf<AGameCharacter>> GetRoleCharacterClasses();
 	/// <summary>
+	/// Checks if a role exists in the role data table
+	/// </summary>
+	/// <param name="RoleName">Role to check</param>
+	/// <returns>true or false</returns>
+	bool RoleExists(const FName& RoleName) const;
+	/// <summary>
+	/// Looks up the character class for a given name
+	/// </summary>
+	/// <param name="RoleName">name of role</param>
+	/// <returns>Character Class</returns>
+	TSubclassOf<AGameCharacter> GetRoleForName(const FName& RoleName) const;
+	/// <summary>
 	/// Returns the price for a character name
 	/// </summary>
 	/// <returns></returns>
@@ -41,6 +53,10 @@ private:
 	/// Avoid looking up multiple times, once read once save it to memory in this var
 	/// </summary>
 	TArray<TSubclassOf<AGameCharacter>> _CachedCharacterClasses;
+	/// <summary>
+	/// TODO: Combine this and above
+	/// </summary>
+	TMap<FName, TSubclassOf<AGameCharacter>> _RoleNameToCharacterClassMap;
 	/// <summary>
 	/// Avoid looking up multiple times, once read once save it to memory in this var
 	/// </summary>

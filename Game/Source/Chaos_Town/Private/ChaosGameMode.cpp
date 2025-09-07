@@ -6,6 +6,14 @@
 #include "ChaosGameState.h"
 #include "GameCharacter.h"
 #include "CharacterChooser.h"
+#include "RoleSpawnPoint.h"
+#include "Kismet/GameplayStatics.h"
+
+void AChaosGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	_ScanMap();
+}
 
 void AChaosGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -25,16 +33,71 @@ bool AChaosGameMode::CanPurchaseRoleValidation(AChaosGameState* _GameState, APla
 	return _PlayerCharacterChooser && _PlayerCanPurchaseRole;
 }
 
-bool AChaosGameMode::ServerPurchaseRole_Validate(APlayerController* PlayerController, const FName& CharacterName)
+std::optional<FVector> AChaosGameMode::GetSpawnPointForRole(const FName& RoleName) const
 {
-	AChaosGameState* _GameState = GetGameState<AChaosGameState>();
-	return CanPurchaseRoleValidation(_GameState, PlayerController, CharacterName);
+	if (_RoleSpawnpoints.Contains(RoleName))
+	{
+		return _RoleSpawnpoints[RoleName];
+	}
+	return std::nullopt;
 }
 
-void AChaosGameMode::ServerPurchaseRole_Implementation(APlayerController* PlayerController, const FName& CharacterName)
+//void AChaosGameMode::MovePlayerToRoleStartingLocation(APlayerController* PlayerController, const FName& RoleName)
+//{
+//	return;
+//	const std::string_view& _Error = _ValidateMovePlayerToRoleStartingLocation(PlayerController, RoleName);
+//	if (!_Error.empty())
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("MovePlayerToRoleStartingLocation: Failed Validation: %hs"), _Error.data());
+//		return;
+//	}
+//	const FVector& SpawnLocation = _RoleSpawnpoints[RoleName];
+//	UE_LOG(LogTemp, Warning, TEXT("Moving player to role %s at location %s"), *RoleName.ToString(), *SpawnLocation.ToString());
+//	PlayerController->GetPawn()->SetActorLocation(SpawnLocation);
+//}
+
+void AChaosGameMode::_ScanMap()
 {
-	AChaosPlayerState* _PlayerState = PlayerController->GetPlayerState<AChaosPlayerState>();
-	_PlayerState->SetMoney(_PlayerState->GetMoney() - GetGameState<AChaosGameState>()->GetPriceOfRoleCharacter(CharacterName));
-	_PlayerState->SetRoleName(CharacterName);
-	// return _CanPurchase(PlayerController, Price);
+	UE_LOG(LogTemp, Warning, TEXT("Scanning map begun"));
+	_ScanMapForRoleSpawnpoints();
+	UE_LOG(LogTemp, Warning, TEXT("Finished scanning map after ..."));
+}
+
+void AChaosGameMode::_ScanMapForRoleSpawnpoints()
+{
+	TArray<AActor*> _FoundActors;
+	UE_LOG(LogTemp, Warning, TEXT("Scanning map for role spawnpoints"));
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), _RoleSpawnpointClass, _FoundActors);
+	for (AActor* _Actor : _FoundActors)
+	{
+		if (_Actor->Implements<URoleSpawnPoint>())
+		{
+			const FName RoleName = IRoleSpawnPoint::Execute_GetRoleName(_Actor);
+			const FVector SpawnLocation = IRoleSpawnPoint::Execute_GetSpawnLocation(_Actor);
+			_RoleSpawnpoints.Add(RoleName, SpawnLocation);
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Finished scanning map for role spawnpoints after ..."));
+}
+
+const std::string_view AChaosGameMode::_ValidateMovePlayerToRoleStartingLocation(APlayerController* PlayerController, const FName& RoleName)
+{
+	const AChaosGameState* _GameState = GetWorld()->GetGameState<AChaosGameState>();
+	if (!PlayerController)
+	{
+		return "Player Controller is null";
+	}
+	if (!RoleName.IsValid() || !_GameState->RoleExists(RoleName))
+	{
+		return "RoleName is not valid";
+	}
+	if (!_RoleSpawnpoints.Contains(RoleName))
+	{
+		return "No spawn point found for role";
+	}
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		return "Only Server can call this method";
+	}
+	return std::string_view{};
 }

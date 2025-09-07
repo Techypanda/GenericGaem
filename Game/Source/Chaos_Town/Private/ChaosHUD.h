@@ -16,16 +16,21 @@ class AChaosHUD : public AHUD
 
 public:
 	virtual void BeginPlay() override;
-
+	/// <summary>
+	/// Called once role has been purchased
+	/// </summary>
+	void OnRolePurchase();
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UUserWidget> _RoleSelectionUIClass;
-
 private:
 	class UUserWidget* _RoleSelectionUI;
 	/// <summary>
-	/// Handles creating the Role Selection UI and adding it to the viewport aswell as
-	/// enabling the mouse cursor and setting the input mode to UI only.
+	/// Handles creating the widgets used in the HUD
 	/// </summary>
-	void _ShowRoleSelectionUI();
+	void _CreateWidgets();
+	/// <summary>
+	/// Handling toggling and off the role selection UI
+	/// </summary>
+	void _ShowRoleSelectionUI(bool bShow);
 };

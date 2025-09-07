@@ -7,13 +7,31 @@
 void AChaosHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	_ShowRoleSelectionUI();
+	_CreateWidgets();
+	_ShowRoleSelectionUI(true);
 }
 
-void AChaosHUD::_ShowRoleSelectionUI()
+void AChaosHUD::OnRolePurchase()
+{
+	_ShowRoleSelectionUI(false);
+}
+
+void AChaosHUD::_CreateWidgets()
 {
 	_RoleSelectionUI = CreateWidget<UUserWidget>(GetWorld(), _RoleSelectionUIClass);
-	GetOwningPlayerController()->bShowMouseCursor = true;
-	GetOwningPlayerController()->SetInputMode(FInputModeUIOnly());
-	_RoleSelectionUI->AddToViewport();
+}
+
+void AChaosHUD::_ShowRoleSelectionUI(bool bShow)
+{
+	GetOwningPlayerController()->bShowMouseCursor = bShow;
+	if (bShow)
+	{
+		GetOwningPlayerController()->SetInputMode(FInputModeUIOnly());
+		_RoleSelectionUI->AddToViewport();
+	}
+	else
+	{
+		GetOwningPlayerController()->SetInputMode(FInputModeGameOnly());
+		_RoleSelectionUI->RemoveFromViewport();
+	}
 }

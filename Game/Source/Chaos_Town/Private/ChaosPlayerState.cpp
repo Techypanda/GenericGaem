@@ -1,6 +1,8 @@
 #include "ChaosPlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
+#include "ChaosPlayerController.h"
+#include "ChaosHUD.h"
 
 AChaosPlayerState::AChaosPlayerState()
 {
@@ -21,7 +23,7 @@ float AChaosPlayerState::GetMoney() const
 
 void AChaosPlayerState::SetMoney(const float& NewMoney)
 {
-	if (GetRemoteRole() != ROLE_Authority)
+	if (GetLocalRole() != ROLE_Authority)
 	{
 		UE_LOG(LogTemp, Error, TEXT("SetMoney can only be called on the server"));
 		return;
@@ -37,7 +39,7 @@ FName AChaosPlayerState::GetRoleName() const
 
 void AChaosPlayerState::SetRoleName(const FName& NewRoleName)
 {
-	if (GetRemoteRole() != ROLE_Authority)
+	if (GetLocalRole() != ROLE_Authority)
 	{
 		UE_LOG(LogTemp, Error, TEXT("SetRoleName can only be called on the server"));
 		return;
@@ -62,4 +64,14 @@ void AChaosPlayerState::OnRep_Role()
 
 void AChaosPlayerState::OnRoleChanged()
 {
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (const auto& _Controller = Cast<AChaosPlayerController>(GetPlayerController()))
+		{
+			_Controller->ServerOnPlayerRoleChanged();
+		}
+		return;
+	}
+	// Client Code
+	GetPlayerController()->GetHUD<AChaosHUD>()->OnRolePurchase();
 }

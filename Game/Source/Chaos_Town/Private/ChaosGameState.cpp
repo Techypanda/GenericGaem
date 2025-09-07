@@ -9,6 +9,16 @@ TArray<TSubclassOf<AGameCharacter>> AChaosGameState::GetRoleCharacterClasses()
 	return _CachedCharacterClasses;
 }
 
+bool AChaosGameState::RoleExists(const FName& RoleName) const
+{
+	return _CachedCharacterPrices.Contains(RoleName);
+}
+
+TSubclassOf<AGameCharacter> AChaosGameState::GetRoleForName(const FName& RoleName) const
+{
+	return _RoleNameToCharacterClassMap[RoleName];
+}
+
 float AChaosGameState::GetPriceOfRoleCharacter(FName RoleName)
 {
 	_CacheRoleDataPricesIfNeeded();
@@ -62,6 +72,7 @@ void AChaosGameState::_CacheRoleDataPrices(TArray<FName>& RoleDataArr)
 	for (const FName& _RoleName : RoleDataArr)
 	{
 		_CachedCharacterPrices.Add(_RoleName, _RoleTable->FindRow<FRoleData>(_RoleName, TEXT("_CacheRoleDataPrices"))->Price);
+		_RoleNameToCharacterClassMap.Add(_RoleName, _RoleTable->FindRow<FRoleData>(_RoleName, TEXT("_CacheRoleDataPrices"))->RoleCharacter);
 	}
 }
 
